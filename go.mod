@@ -4,7 +4,6 @@ go 1.22.2
 
 require (
 	github.com/joshuarubin/go-sway v1.2.0
-	github.com/mdirkse/i3ipc v0.0.0-20171212230543-ac599a872375
 	github.com/spf13/viper v1.18.2
 )
 
