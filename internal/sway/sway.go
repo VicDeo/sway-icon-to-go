@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"sway-icon-to-go/internal/config"
 
@@ -99,11 +101,27 @@ func getNewWorkspaceName(workspaceNumber int64, workspaceNodes []swayClient.Node
 }
 
 func getAppTitle(app swayClient.Node) string {
-	name := config.GetAppIcon(app.Name)
-	if !config.IsNoMatchIcon(name) {
-		return name
+	name, err := getExecutableName(app.PID)
+	log.Println("executable name is", name)
+	if err != nil || name == "" {
+		fmt.Println(err)
+		name = app.Name
+	}
+	icon := config.GetAppIcon(name)
+	if !config.IsNoMatchIcon(icon) {
+		return icon
 	}
 	// No app mapping found, use the app name
-	fmt.Println("No app mapping found for ", app.Name)
-	return config.TrimAppName(app.Name)
+	fmt.Println("No app mapping found for ", app)
+	return config.TrimAppName(name)
+}
+
+func getExecutableName(pid *uint32) (string, error) {
+	pidInt := int(*pid)
+	exePath := filepath.Join("/proc", strconv.Itoa(pidInt), "exe")
+	realPath, err := filepath.EvalSymlinks(exePath)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Base(realPath), nil
 }
