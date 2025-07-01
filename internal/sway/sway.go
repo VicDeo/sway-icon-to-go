@@ -4,18 +4,21 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"path/filepath"
-	"strconv"
 	"strings"
-	"sway-icon-to-go/internal/config"
 
 	swayClient "github.com/joshuarubin/go-sway"
 )
 
 type Workspaces map[int64]*Workspace
 type WorkspaceNumByName map[string]int64
+type IconProvider interface {
+	GetIcon(pid *uint32, nodeName string) (string, bool)
+}
+type NameFormatter interface {
+	Format(workspaceNumber int64, appIcons []string) string
+}
 
-func ProcessWorkspaces(ctx context.Context) error {
+func ProcessWorkspaces(ctx context.Context, iconProvider IconProvider, nameFormatter NameFormatter) error {
 	var commands []string
 
 	log.Println("Processing workspaces")
@@ -42,12 +45,12 @@ func ProcessWorkspaces(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	traverseTree(tree, workspaceNumByName, workspaces)
+	traverseTree(tree, workspaceNumByName, workspaces, iconProvider)
 	//log.Println(workspaceApps)
 
 	// Then iterate over the workspaces and prepare the rename commands
 	for _, workspace := range workspaces {
-		newName := workspace.GetNewName()
+		newName := workspace.GetNewName(nameFormatter)
 		if newName != workspace.Name {
 			commands = append(commands, getRenameWorkspaceCommand(workspace.Name, newName))
 		}
@@ -63,57 +66,35 @@ func ProcessWorkspaces(ctx context.Context) error {
 	return nil
 }
 
-func traverseTree(node *swayClient.Node, workspaceNumByName WorkspaceNumByName, workspaces Workspaces) {
+func traverseTree(node *swayClient.Node, workspaceNumByName WorkspaceNumByName, workspaces Workspaces, iconProvider IconProvider) {
 	switch node.Type {
 	case swayClient.NodeWorkspace:
 		for _, child := range node.Nodes {
 			workspace := NewWorkspace(node.Name, workspaceNumByName[node.Name])
 			workspaces[workspace.Number] = workspace
 
-			traverseWorkspace(child, workspace.Number, workspaces)
+			traverseWorkspace(child, workspace.Number, workspaces, iconProvider)
 		}
 	default:
 		for _, child := range node.Nodes {
-			traverseTree(child, workspaceNumByName, workspaces)
+			traverseTree(child, workspaceNumByName, workspaces, iconProvider)
 		}
 	}
 }
 
-func traverseWorkspace(node *swayClient.Node, workspaceNumber int64, workspaces Workspaces) {
+func traverseWorkspace(node *swayClient.Node, workspaceNumber int64, workspaces Workspaces, iconProvider IconProvider) {
 	if node.Type == swayClient.NodeCon || node.Type == swayClient.NodeFloatingCon {
-		workspaces[workspaceNumber].AddAppIcon(getAppIcon(*node))
+		icon, found := iconProvider.GetIcon(node.PID, node.Name)
+		if !found {
+			fmt.Println("No app mapping found for ", node)
+		}
+		workspaces[workspaceNumber].AddAppIcon(icon)
 	}
 	for _, child := range node.Nodes {
-		traverseWorkspace(child, workspaceNumber, workspaces)
+		traverseWorkspace(child, workspaceNumber, workspaces, iconProvider)
 	}
 
 	for _, child := range node.FloatingNodes {
-		traverseWorkspace(child, workspaceNumber, workspaces)
+		traverseWorkspace(child, workspaceNumber, workspaces, iconProvider)
 	}
-}
-
-func getAppIcon(app swayClient.Node) string {
-	name, err := getExecutableName(app.PID)
-	if err != nil || name == "" {
-		fmt.Println(err)
-		name = app.Name
-	}
-	icon, found := config.GetAppIcon(name)
-	if !found {
-		fmt.Println("No app mapping found for ", app)
-	}
-	return icon
-}
-
-func getExecutableName(pid *uint32) (string, error) {
-	if pid == nil {
-		return "", fmt.Errorf("pid is nil")
-	}
-	pidInt := int(*pid)
-	exePath := filepath.Join("/proc", strconv.Itoa(pidInt), "exe")
-	realPath, err := filepath.EvalSymlinks(exePath)
-	if err != nil {
-		return "", err
-	}
-	return filepath.Base(realPath), nil
 }

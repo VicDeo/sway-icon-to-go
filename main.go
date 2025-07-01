@@ -8,7 +8,9 @@ import (
 	"log"
 	"net/http"
 	"os/exec"
+	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sway-icon-to-go/internal/config"
 	"sway-icon-to-go/internal/sway"
@@ -17,6 +19,7 @@ import (
 )
 
 var (
+	appConfig         *config.Config
 	WindowChangeTypes = [...]swayClient.WindowEventChange{
 		swayClient.WindowMove,
 		swayClient.WindowNew,
@@ -30,14 +33,33 @@ type handler struct {
 	swayClient.EventHandler
 }
 
+type ConfigIconProvider struct{}
+
+type ConfigNameFormatter struct{}
+
+func (c ConfigNameFormatter) Format(workspaceNumber int64, appIcons []string) string {
+	return fmt.Sprintf("%d:%s", workspaceNumber, strings.Join(appIcons, appConfig.Delimiter))
+}
+
 func (h handler) Window(ctx context.Context, event swayClient.WindowEvent) {
+	iconProvider := &ConfigIconProvider{}
+	nameFormatter := &ConfigNameFormatter{}
 	for _, b := range WindowChangeTypes {
 		if b == event.Change {
-			if err := sway.ProcessWorkspaces(ctx); err != nil {
+			if err := sway.ProcessWorkspaces(ctx, iconProvider, nameFormatter); err != nil {
 				log.Printf("Error while processing the event : %s\n", err)
 			}
 		}
 	}
+}
+
+func (c ConfigIconProvider) GetIcon(pid *uint32, nodeName string) (string, bool) {
+	name, err := getExecutableName(pid)
+	if err != nil || name == "" {
+		fmt.Println(err)
+		name = nodeName
+	}
+	return config.GetAppIcon(name)
 }
 
 func main() {
@@ -56,7 +78,11 @@ func main() {
 		dump()
 		return
 	}
-	config.GetConfig(*delim, *uniq, *length, "")
+	var configErr error
+	appConfig, configErr = config.GetConfig(*delim, *uniq, *length, "")
+	if configErr != nil {
+		log.Fatalf("Error while getting config: %v", configErr)
+	}
 
 	h := handler{
 		EventHandler: swayClient.NoOpEventHandler(),
@@ -129,4 +155,17 @@ func dump() {
 		char := strings.Replace(match[2], "\\", "\\u", 1)
 		fmt.Printf("%s: %s\n", match[1], char)
 	}
+}
+
+func getExecutableName(pid *uint32) (string, error) {
+	if pid == nil {
+		return "", fmt.Errorf("pid is nil")
+	}
+	pidInt := int(*pid)
+	exePath := filepath.Join("/proc", strconv.Itoa(pidInt), "exe")
+	realPath, err := filepath.EvalSymlinks(exePath)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Base(realPath), nil
 }
