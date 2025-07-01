@@ -69,6 +69,7 @@ var (
 		"edit": []string{
 			"jetbrains-idea-ce",
 			"code",
+			"cursor",
 		},
 		"folder-open": []string{
 			"nautilus",

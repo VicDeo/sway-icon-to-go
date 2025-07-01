@@ -19,6 +19,7 @@ envelope:
 edit:
   - jetbrains-idea-ce
   - code
+  - cursor
   - libreoffice
 folder-open:
   - nautilus
