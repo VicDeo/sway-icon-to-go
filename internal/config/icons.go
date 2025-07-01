@@ -7,8 +7,8 @@ import (
 )
 
 func GetAppIcon(name string) (string, bool) {
+	// Note:we expect the name to be lowercase but this is the subject of a discussion
 	name = strings.ToLower(name)
-	fmt.Println(name)
 	if iconCache[name] != "" {
 		return iconCache[name], true
 	}

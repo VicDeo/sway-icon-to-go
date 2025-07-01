@@ -2,7 +2,6 @@ package sway
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strings"
 
@@ -86,7 +85,7 @@ func traverseWorkspace(node *swayClient.Node, workspaceNumber int64, workspaces 
 	if node.Type == swayClient.NodeCon || node.Type == swayClient.NodeFloatingCon {
 		icon, found := iconProvider.GetIcon(node.PID, node.Name)
 		if !found {
-			fmt.Println("No app mapping found for ", node)
+			log.Printf("No app mapping found for %v\n", node)
 		}
 		workspaces[workspaceNumber].AddAppIcon(icon)
 	}

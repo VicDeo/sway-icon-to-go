@@ -10,7 +10,7 @@ func NewWorkspace(name string, number int64) *Workspace {
 	return &Workspace{
 		Name:     name,
 		Number:   number,
-		AppIcons: make([]string, 0),
+		AppIcons: make([]string, 0, 10),
 	}
 }
 

@@ -18,6 +18,11 @@ import (
 	swayClient "github.com/joshuarubin/go-sway"
 )
 
+const (
+	fontAwesomeStylesUri = "https://github.com/FortAwesome/Font-Awesome/raw/6.x/css/all.css"
+	procPath             = "/proc"
+)
+
 var (
 	appConfig         *config.Config
 	WindowChangeTypes = [...]swayClient.WindowEventChange{
@@ -26,7 +31,6 @@ var (
 		swayClient.WindowTitle,
 		swayClient.WindowClose,
 	}
-	fontAwesomeStylesUri = "https://github.com/FortAwesome/Font-Awesome/raw/6.x/css/all.css"
 )
 
 type handler struct {
@@ -56,7 +60,7 @@ func (h handler) Window(ctx context.Context, event swayClient.WindowEvent) {
 func (c ConfigIconProvider) GetIcon(pid *uint32, nodeName string) (string, bool) {
 	name, err := getExecutableName(pid)
 	if err != nil || name == "" {
-		fmt.Println(err)
+		log.Printf("Error while getting executable name: %v\n", err)
 		name = nodeName
 	}
 	return config.GetAppIcon(name)
@@ -89,10 +93,11 @@ func main() {
 	}
 
 	// go-sway event loop that listens for window events
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	err := swayClient.Subscribe(ctx, h, swayClient.EventTypeWindow)
 	if err != nil {
-		log.Printf("failed to connect to sway: %v", err)
+		log.Fatalf("failed to connect to sway: %v", err)
 	}
 
 	// Wait indefinitely
@@ -161,8 +166,8 @@ func getExecutableName(pid *uint32) (string, error) {
 	if pid == nil {
 		return "", fmt.Errorf("pid is nil")
 	}
-	pidInt := int(*pid)
-	exePath := filepath.Join("/proc", strconv.Itoa(pidInt), "exe")
+	pidStr := strconv.FormatUint(uint64(*pid), 10)
+	exePath := filepath.Join(procPath, pidStr, "exe")
 	realPath, err := filepath.EvalSymlinks(exePath)
 	if err != nil {
 		return "", err

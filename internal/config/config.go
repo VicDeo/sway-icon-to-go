@@ -1,7 +1,7 @@
 package config
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -111,7 +111,7 @@ func GetConfig(delim string, uniq bool, length int, configPath string) (*Config,
 				iconMap := &IconToAppMap{}
 				err = viper.Unmarshal(iconMap)
 				if err == nil {
-					//fmt.Println(configPath + " is loaded")
+					log.Printf("Config file is found  %s\n", configPath)
 					iconConfig = *iconMap
 				}
 			}
@@ -122,14 +122,14 @@ func GetConfig(delim string, uniq bool, length int, configPath string) (*Config,
 	if faIconsPath != "" {
 		fileInfo, fileErr := os.Stat(faIconsPath)
 		if fileErr == nil && !fileInfo.IsDir() {
-			fmt.Println(faIconsPath)
+			log.Printf("Font Awesome config file is found  %s\n", faIconsPath)
 			viper.SetConfigFile(faIconsPath)
 			viper.SetConfigType("yaml")
 			if err := viper.ReadInConfig(); err == nil {
 				faIcons := &map[string]string{}
 				err = viper.Unmarshal(faIcons)
 				if err == nil {
-					fmt.Println(faIconsPath + " is loaded")
+					log.Printf("Font Awesome config file is loaded %s\n", faIconsPath)
 					icons = *faIcons
 					for k, v := range icons {
 						icons[k], _ = strconv.Unquote(`"` + v + `"`)
