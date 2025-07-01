@@ -81,10 +81,7 @@ func traverseTree(node *swayClient.Node, workspaceNumByName WorkspaceNumByName, 
 
 func traverseWorkspace(node *swayClient.Node, workspaceNumber int64, workspaces Workspaces) {
 	if node.Type == swayClient.NodeCon || node.Type == swayClient.NodeFloatingCon {
-		// Ignore ghost nodes
-		if node.AppID != nil || node.Name != nil {
-			workspaces[workspaceNumber].AddAppIcon(getAppIcon(*node))
-		}
+		workspaces[workspaceNumber].AddAppIcon(getAppIcon(*node))
 	}
 	for _, child := range node.Nodes {
 		traverseWorkspace(child, workspaceNumber, workspaces)
@@ -109,6 +106,9 @@ func getAppIcon(app swayClient.Node) string {
 }
 
 func getExecutableName(pid *uint32) (string, error) {
+	if pid == nil {
+		return "", fmt.Errorf("pid is nil")
+	}
 	pidInt := int(*pid)
 	exePath := filepath.Join("/proc", strconv.Itoa(pidInt), "exe")
 	realPath, err := filepath.EvalSymlinks(exePath)
