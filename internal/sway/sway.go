@@ -107,13 +107,11 @@ func getAppTitle(app swayClient.Node) string {
 		fmt.Println(err)
 		name = app.Name
 	}
-	icon := config.GetAppIcon(name)
-	if !config.IsNoMatchIcon(icon) {
-		return icon
+	icon, found := config.GetAppIcon(name)
+	if !found {
+		fmt.Println("No app mapping found for ", app)
 	}
-	// No app mapping found, use the app name
-	fmt.Println("No app mapping found for ", app)
-	return config.TrimAppName(name)
+	return icon
 }
 
 func getExecutableName(pid *uint32) (string, error) {

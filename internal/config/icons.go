@@ -6,11 +6,11 @@ import (
 	"strings"
 )
 
-func GetAppIcon(name string) string {
+func GetAppIcon(name string) (string, bool) {
 	name = strings.ToLower(name)
 	fmt.Println(name)
 	if iconCache[name] != "" {
-		return iconCache[name]
+		return iconCache[name], true
 	}
 
 	for icon, appNames := range currentConfig.AppIcons {
@@ -18,12 +18,16 @@ func GetAppIcon(name string) string {
 			match, _ := regexp.MatchString(appName, name)
 			if match {
 				iconCache[name] = icons[icon]
-				return iconCache[name]
+				return iconCache[name], true
 			}
 		}
 	}
-	iconCache[name] = icons[NoMatch]
-	return iconCache[name]
+
+	// TODO: make this configurable
+	iconCache[name] = TrimAppName(name)
+	//iconCache[name] = icons[NoMatch]
+
+	return iconCache[name], false
 }
 
 func IsNoMatchIcon(icon string) bool {
