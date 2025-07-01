@@ -12,7 +12,8 @@ import (
 	swayClient "github.com/joshuarubin/go-sway"
 )
 
-type WorkspaceApps map[string][]swayClient.Node
+type Workspaces map[int64]*Workspace
+type WorkspaceNumByName map[string]int64
 
 func ProcessWorkspaces(ctx context.Context) error {
 	var commands []string
@@ -23,19 +24,32 @@ func ProcessWorkspaces(ctx context.Context) error {
 		return err
 	}
 
-	workspaceApps := make(WorkspaceApps)
+	// First pre-populate the workspace number by name
+	// Sadly Node with type NodeWorkspace does not have
+	// this property, so we need to get it from the sway workspaces
+	workspaceNumByName := make(WorkspaceNumByName)
+	swayWorkspaces, err := sway.GetWorkspaces(ctx)
+	if err != nil {
+		return err
+	}
+	for _, workspace := range swayWorkspaces {
+		workspaceNumByName[workspace.Name] = workspace.Num
+	}
+
+	// Then traverse the tree and populate the workspaces map
+	workspaces := make(Workspaces)
 	tree, err := sway.GetTree(ctx)
 	if err != nil {
 		return err
 	}
-	traverseTree(tree, workspaceApps)
+	traverseTree(tree, workspaceNumByName, workspaces)
 	//log.Println(workspaceApps)
 
-	for workspaceName, workspaceNodes := range workspaceApps {
-		workspaceNumber := getWorkspaceNumber(ctx, sway, workspaceName)
-		newName := getNewWorkspaceName(workspaceNumber, workspaceNodes)
-		if newName != workspaceName {
-			commands = append(commands, getRenameWorkspaceCommand(workspaceName, newName))
+	// Then iterate over the workspaces and prepare the rename commands
+	for _, workspace := range workspaces {
+		newName := workspace.GetNewName()
+		if newName != workspace.Name {
+			commands = append(commands, getRenameWorkspaceCommand(workspace.Name, newName))
 		}
 	}
 
@@ -49,60 +63,40 @@ func ProcessWorkspaces(ctx context.Context) error {
 	return nil
 }
 
-func traverseTree(node *swayClient.Node, workspaceApps WorkspaceApps) {
+func traverseTree(node *swayClient.Node, workspaceNumByName WorkspaceNumByName, workspaces Workspaces) {
 	switch node.Type {
 	case swayClient.NodeWorkspace:
 		for _, child := range node.Nodes {
-			traverseWorkspace(child, node.Name, workspaceApps)
+			workspace := NewWorkspace(node.Name, workspaceNumByName[node.Name])
+			workspaces[workspace.Number] = workspace
+
+			traverseWorkspace(child, workspace.Number, workspaces)
 		}
 	default:
 		for _, child := range node.Nodes {
-			traverseTree(child, workspaceApps)
+			traverseTree(child, workspaceNumByName, workspaces)
 		}
 	}
 }
 
-func traverseWorkspace(node *swayClient.Node, workspaceName string, workspaceApps WorkspaceApps) {
+func traverseWorkspace(node *swayClient.Node, workspaceNumber int64, workspaces Workspaces) {
 	if node.Type == swayClient.NodeCon || node.Type == swayClient.NodeFloatingCon {
-		workspaceApps[workspaceName] = append(workspaceApps[workspaceName], *node)
+		// Ignore ghost nodes
+		if node.AppID != nil || node.Name != nil {
+			workspaces[workspaceNumber].AddAppIcon(getAppIcon(*node))
+		}
 	}
 	for _, child := range node.Nodes {
-		traverseWorkspace(child, workspaceName, workspaceApps)
+		traverseWorkspace(child, workspaceNumber, workspaces)
 	}
 
 	for _, child := range node.FloatingNodes {
-		traverseWorkspace(child, workspaceName, workspaceApps)
+		traverseWorkspace(child, workspaceNumber, workspaces)
 	}
 }
 
-func getWorkspaceNumber(ctx context.Context, sway swayClient.Client, workspaceName string) int64 {
-	workspaces, err := sway.GetWorkspaces(ctx)
-	if err != nil {
-		return 0
-	}
-	for _, workspace := range workspaces {
-		if workspace.Name == workspaceName {
-			return workspace.Num
-		}
-	}
-	return 0
-}
-
-func getNewWorkspaceName(workspaceNumber int64, workspaceNodes []swayClient.Node) string {
-	apps := []string{}
-	for _, app := range workspaceNodes {
-		// Ignore ghost nodes
-		if app.Name == "" {
-			continue
-		}
-		apps = append(apps, getAppTitle(app))
-	}
-	return config.BuildName(workspaceNumber, apps)
-}
-
-func getAppTitle(app swayClient.Node) string {
+func getAppIcon(app swayClient.Node) string {
 	name, err := getExecutableName(app.PID)
-	log.Println("executable name is", name)
 	if err != nil || name == "" {
 		fmt.Println(err)
 		name = app.Name
