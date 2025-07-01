@@ -73,13 +73,17 @@ func main() {
 	flag.Parse()
 	if flag.NArg() == 0 {
 	} else if flag.Arg(0) == "awesome" {
-		findFonts()
+		if err := findFonts(); err != nil {
+			log.Fatalf("Error while finding fonts: %v", err)
+		}
 		return
 	} else if flag.Arg(0) == "help" {
 		help()
 		return
 	} else if flag.Arg(0) == "parse" {
-		dump()
+		if err := dump(); err != nil {
+			log.Fatalf("Error while parsing Font Awesome CSS file: %v", err)
+		}
 		return
 	}
 	var configErr error
@@ -116,7 +120,7 @@ func help() {
 	`)
 }
 
-func findFonts() {
+func findFonts() error {
 	cmd1 := exec.Command("fc-list")
 	cmd2 := exec.Command("grep", "Awesome")
 	cmd3 := exec.Command("sort")
@@ -131,7 +135,7 @@ func findFonts() {
 	cmd3Result, err := io.ReadAll(cmd3Output)
 	if err != nil {
 		log.Printf("Error reading command output: %v\n", err)
-		return
+		return err
 	}
 
 	// Wait for all commands to finish
@@ -141,25 +145,29 @@ func findFonts() {
 
 	// Print the final result
 	fmt.Printf("Result:\n%s\n", cmd3Result)
+	return nil
 }
 
-func dump() {
+func dump() error {
 	// 138Kb is expected so we do it this way
 	resp, err := http.Get(fontAwesomeStylesUri)
 	if err != nil {
-		panic(err)
+		log.Printf("HTTP request failed: %v\n", err)
+		return err
 	}
 	defer resp.Body.Close()
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		log.Printf("Failed to read response body: %v\n", err)
+		return err
 	}
 	re := regexp.MustCompile(`\.fa-([^:]+):?:before[^"]+"(.*)"`)
 	for _, match := range re.FindAllStringSubmatch(string(data), -1) {
 		char := strings.Replace(match[2], "\\", "\\u", 1)
 		fmt.Printf("%s: %s\n", match[1], char)
 	}
+	return nil
 }
 
 func getExecutableName(pid *uint32) (string, error) {
