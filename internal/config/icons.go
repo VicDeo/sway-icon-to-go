@@ -37,7 +37,7 @@ func TrimAppName(appName string) string {
 	return appName
 }
 
-func BuildName(id int32, appNames []string) string {
+func BuildName(id int64, appNames []string) string {
 	if currentConfig.Uniq {
 		appNames = unique(appNames)
 	}
