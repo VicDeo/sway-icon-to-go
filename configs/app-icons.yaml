@@ -1,0 +1,35 @@
+firefox:
+  - firefox
+chrome:
+  - chromium-browser
+  - chrome
+  - google-chrome
+terminal:
+  - x-terminal-emulator
+  - xterm
+  - konsole
+shield-alt:
+  - keepassxc
+image:
+  - gwenview
+cog:
+  - yast2
+envelope:
+  -  thunderbird
+edit:
+  - jetbrains-idea-ce
+  - code
+  - libreoffice
+folder-open:
+  - nautilus
+  - .*krusader.*
+music:
+  - clementine
+play:
+  - vlc
+comment:
+  - signal
+  - discord
+  - telegram
+question-circle:
+  - _no_match
