@@ -24,7 +24,6 @@ const (
 )
 
 var (
-	appConfig         *config.Config
 	WindowChangeTypes = [...]swayClient.WindowEventChange{
 		swayClient.WindowMove,
 		swayClient.WindowNew,
@@ -35,26 +34,22 @@ var (
 
 type handler struct {
 	swayClient.EventHandler
+	nameFormatter *ConfigNameFormatter
+	iconProvider  *ConfigIconProvider
 }
 
 type ConfigIconProvider struct{}
 
-type ConfigNameFormatter struct{}
-
-func (c ConfigNameFormatter) Format(workspaceNumber int64, appIcons []string) string {
-	return fmt.Sprintf("%d:%s", workspaceNumber, strings.Join(appIcons, appConfig.Delimiter))
+type ConfigNameFormatter struct {
+	config *config.Config
 }
 
-func (h handler) Window(ctx context.Context, event swayClient.WindowEvent) {
-	iconProvider := &ConfigIconProvider{}
-	nameFormatter := &ConfigNameFormatter{}
-	for _, b := range WindowChangeTypes {
-		if b == event.Change {
-			if err := sway.ProcessWorkspaces(ctx, iconProvider, nameFormatter); err != nil {
-				log.Printf("Error while processing the event : %s\n", err)
-			}
-		}
-	}
+func NewConfigNameFormatter(config *config.Config) *ConfigNameFormatter {
+	return &ConfigNameFormatter{config: config}
+}
+
+func (c ConfigNameFormatter) Format(workspaceNumber int64, appIcons []string) string {
+	return fmt.Sprintf("%d:%s", workspaceNumber, strings.Join(appIcons, c.config.Delimiter))
 }
 
 func (c ConfigIconProvider) GetIcon(pid *uint32, nodeName string) (string, bool) {
@@ -64,6 +59,16 @@ func (c ConfigIconProvider) GetIcon(pid *uint32, nodeName string) (string, bool)
 		name = nodeName
 	}
 	return config.GetAppIcon(name)
+}
+
+func (h handler) Window(ctx context.Context, event swayClient.WindowEvent) {
+	for _, b := range WindowChangeTypes {
+		if b == event.Change {
+			if err := sway.ProcessWorkspaces(ctx, h.iconProvider, h.nameFormatter); err != nil {
+				log.Printf("Error while processing the event : %s\n", err)
+			}
+		}
+	}
 }
 
 func main() {
@@ -86,14 +91,16 @@ func main() {
 		}
 		return
 	}
-	var configErr error
-	appConfig, configErr = config.GetConfig(*delim, *uniq, *length, "")
+	appConfig, configErr := config.GetConfig(*delim, *uniq, *length, "")
 	if configErr != nil {
 		log.Fatalf("Error while getting config: %v", configErr)
 	}
-
+	nameFormatter := NewConfigNameFormatter(appConfig)
+	iconProvider := &ConfigIconProvider{}
 	h := handler{
-		EventHandler: swayClient.NoOpEventHandler(),
+		EventHandler:  swayClient.NoOpEventHandler(),
+		nameFormatter: nameFormatter,
+		iconProvider:  iconProvider,
 	}
 
 	// go-sway event loop that listens for window events

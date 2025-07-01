@@ -10,13 +10,19 @@ import (
 
 type Workspaces map[int64]*Workspace
 type WorkspaceNumByName map[string]int64
+
+// IconProvider is an interface that provides an icon for a given PID and node name
 type IconProvider interface {
 	GetIcon(pid *uint32, nodeName string) (string, bool)
 }
+
+// NameFormatter is an interface that formats a workspace name
 type NameFormatter interface {
 	Format(workspaceNumber int64, appIcons []string) string
 }
 
+// ProcessWorkspaces processes the workspaces and renames them according to the name formatter and icon provider
+// basing on the apps running on the workspaces
 func ProcessWorkspaces(ctx context.Context, iconProvider IconProvider, nameFormatter NameFormatter) error {
 	var commands []string
 
