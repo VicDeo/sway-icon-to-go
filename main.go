@@ -215,9 +215,7 @@ func dump() error {
 		log.Printf("Failed to read response body: %v\n", err)
 		return err
 	}
-	fmt.Printf("Result:\n%s\n", string(data))
-	// TODO: Fix this regex
-	re := regexp.MustCompile(`\.fa-([^:]+):?:before[^"]+"(.*)"`)
+	re := regexp.MustCompile(`\.fa-([a-zA-Z0-9\-]+)\s*{\s*--fa:\s*"(\\[a-fA-F0-9]+)"`)
 	for _, match := range re.FindAllStringSubmatch(string(data), -1) {
 		char := strings.Replace(match[2], "\\", "\\u", 1)
 		fmt.Printf("%s: %s\n", match[1], char)
