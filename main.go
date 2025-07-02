@@ -52,18 +52,16 @@ type ConfigIconProvider struct {
 }
 
 // ConfigNameFormatter is a struct that formats the workspace name according to the config
-type ConfigNameFormatter struct {
-	config *config.Config
-}
+type ConfigNameFormatter struct{}
 
 // NewConfigNameFormatter creates a new ConfigNameFormatter with the given config
 func NewConfigNameFormatter(config *config.Config) *ConfigNameFormatter {
-	return &ConfigNameFormatter{config: config}
+	return &ConfigNameFormatter{}
 }
 
 // Format the workspace name according to the config
 func (c ConfigNameFormatter) Format(workspaceNumber int64, appIcons []string) string {
-	return fmt.Sprintf("%d:%s", workspaceNumber, strings.Join(appIcons, c.config.Delimiter))
+	return config.BuildName(workspaceNumber, appIcons)
 }
 
 // Get the icon for the given pid and node name
