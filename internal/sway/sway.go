@@ -96,11 +96,14 @@ func traverseTree(node *swayClient.Node, workspaceNumByName WorkspaceNumByName, 
 // traverseWorkspace traverses the workspace and populates the workspaces map
 func traverseWorkspace(node *swayClient.Node, workspaceNumber int64, workspaces Workspaces, iconProvider IconProvider) {
 	if node.Type == swayClient.NodeCon || node.Type == swayClient.NodeFloatingCon {
-		icon, found := iconProvider.GetIcon(node.PID, node.Name)
-		if !found {
-			log.Printf("No app mapping found for %v\n", node)
+		// Ignore ghost nodes that we can't resolve anyway
+		if !(node.PID == nil && node.Name == "") {
+			icon, found := iconProvider.GetIcon(node.PID, node.Name)
+			if !found {
+				log.Printf("No app mapping found for %v\n", node)
+			}
+			workspaces[workspaceNumber].AddAppIcon(icon)
 		}
-		workspaces[workspaceNumber].AddAppIcon(icon)
 	}
 	for _, child := range node.Nodes {
 		traverseWorkspace(child, workspaceNumber, workspaces, iconProvider)
