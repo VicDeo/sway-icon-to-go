@@ -1,3 +1,6 @@
+// Package sway provides a way to process the workspaces and renames them
+// according to the name formatter and icon provider basing on the apps running on the workspaces
+
 package sway
 
 import (
@@ -8,7 +11,10 @@ import (
 	swayClient "github.com/joshuarubin/go-sway"
 )
 
+// Workspaces is a map of workspace number to workspace
 type Workspaces map[int64]*Workspace
+
+// WorkspaceNumByName is a map of workspace name to workspace number
 type WorkspaceNumByName map[string]int64
 
 // IconProvider is an interface that provides an icon for a given PID and node name
@@ -26,7 +32,6 @@ type NameFormatter interface {
 func ProcessWorkspaces(ctx context.Context, iconProvider IconProvider, nameFormatter NameFormatter) error {
 	var commands []string
 
-	log.Println("Processing workspaces")
 	sway, err := swayClient.New(ctx)
 	if err != nil {
 		return err
@@ -71,6 +76,7 @@ func ProcessWorkspaces(ctx context.Context, iconProvider IconProvider, nameForma
 	return nil
 }
 
+// traverseTree traverses the tree and populates the workspaces map
 func traverseTree(node *swayClient.Node, workspaceNumByName WorkspaceNumByName, workspaces Workspaces, iconProvider IconProvider) {
 	switch node.Type {
 	case swayClient.NodeWorkspace:
@@ -87,6 +93,7 @@ func traverseTree(node *swayClient.Node, workspaceNumByName WorkspaceNumByName, 
 	}
 }
 
+// traverseWorkspace traverses the workspace and populates the workspaces map
 func traverseWorkspace(node *swayClient.Node, workspaceNumber int64, workspaces Workspaces, iconProvider IconProvider) {
 	if node.Type == swayClient.NodeCon || node.Type == swayClient.NodeFloatingCon {
 		icon, found := iconProvider.GetIcon(node.PID, node.Name)

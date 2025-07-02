@@ -1,3 +1,6 @@
+// Package config provides a way to get the config for the app
+// including app name to icon mappings
+
 package config
 
 import (
@@ -95,6 +98,7 @@ var (
 	currentConfig = &Config{}
 )
 
+// GetConfig creates a new config for the app
 func GetConfig(delim string, uniq bool, length int, configPath string) (*Config, error) {
 	iconConfig := DefaultIconConfig
 	if configPath == "" {
@@ -144,6 +148,7 @@ func GetConfig(delim string, uniq bool, length int, configPath string) (*Config,
 	return currentConfig, nil
 }
 
+// getConfigFilePath gets the config file path for the given file name
 func getConfigFilePath(fileName string) string {
 	usr, _ := user.Current()
 	home := usr.HomeDir

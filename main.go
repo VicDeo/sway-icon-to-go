@@ -1,3 +1,5 @@
+// main package for the sway-icon-to-go app
+
 package main
 
 import (
@@ -21,9 +23,11 @@ import (
 const (
 	fontAwesomeStylesUri = "https://github.com/FortAwesome/Font-Awesome/raw/6.x/css/all.css"
 	procPath             = "/proc"
+	DefaultCacheSize     = 30
 )
 
 var (
+	// WindowChangeTypes is a list of window event changes that we are interested in
 	WindowChangeTypes = [...]swayClient.WindowEventChange{
 		swayClient.WindowMove,
 		swayClient.WindowNew,
@@ -32,29 +36,37 @@ var (
 	}
 )
 
+// handler is a struct that handles the sway events
 type handler struct {
 	swayClient.EventHandler
 	nameFormatter *ConfigNameFormatter
 	iconProvider  *ConfigIconProvider
 }
 
+// ConfigIconProvider is a struct that provides the icon for the given pid and node name
 type ConfigIconProvider struct {
-	pidCache  map[uint32]string
+	// Cache the executable name by pid
+	pidCache map[uint32]string
+	// Cache the icon by executable name or window name
 	nameCache map[string]string
 }
 
+// ConfigNameFormatter is a struct that formats the workspace name according to the config
 type ConfigNameFormatter struct {
 	config *config.Config
 }
 
+// NewConfigNameFormatter creates a new ConfigNameFormatter with the given config
 func NewConfigNameFormatter(config *config.Config) *ConfigNameFormatter {
 	return &ConfigNameFormatter{config: config}
 }
 
+// Format the workspace name according to the config
 func (c ConfigNameFormatter) Format(workspaceNumber int64, appIcons []string) string {
 	return fmt.Sprintf("%d:%s", workspaceNumber, strings.Join(appIcons, c.config.Delimiter))
 }
 
+// Get the icon for the given pid and node name
 func (c ConfigIconProvider) GetIcon(pid *uint32, nodeName string) (string, bool) {
 	var name string
 	if pid != nil {
@@ -78,9 +90,10 @@ func (c ConfigIconProvider) GetIcon(pid *uint32, nodeName string) (string, bool)
 	if found {
 		c.nameCache[name] = icon
 	}
-	return config.GetAppIcon(name)
+	return icon, found
 }
 
+// Window event handler
 func (h handler) Window(ctx context.Context, event swayClient.WindowEvent) {
 	for _, b := range WindowChangeTypes {
 		if b == event.Change {
@@ -117,8 +130,8 @@ func main() {
 	}
 	nameFormatter := NewConfigNameFormatter(appConfig)
 	iconProvider := &ConfigIconProvider{
-		pidCache:  make(map[uint32]string, 30),
-		nameCache: make(map[string]string, 30),
+		pidCache:  make(map[uint32]string, DefaultCacheSize),
+		nameCache: make(map[string]string, DefaultCacheSize),
 	}
 	h := handler{
 		EventHandler:  swayClient.NoOpEventHandler(),
@@ -138,6 +151,7 @@ func main() {
 	select {}
 }
 
+// Print the help message
 func help() {
 	fmt.Println(`usage: sway-icon-to-go [-uc] [-l LENGTH] [-d DELIMITER] [help|awesome|parse]
   awesome    check if Font Awesome is available on your system (via fc-list)
@@ -150,6 +164,7 @@ func help() {
 	`)
 }
 
+// Check if Font Awesome is available on the system
 func findFonts() error {
 	cmd1 := exec.Command("fc-list")
 	cmd2 := exec.Command("grep", "Awesome")
@@ -158,9 +173,18 @@ func findFonts() error {
 	cmd3.Stdin, _ = cmd2.StdoutPipe()
 	cmd3Output, _ := cmd3.StdoutPipe()
 
-	_ = cmd3.Start()
-	_ = cmd2.Start()
-	_ = cmd1.Start()
+	if err := cmd3.Start(); err != nil {
+		log.Printf("Error starting command: %v\n", err)
+		return err
+	}
+	if err := cmd2.Start(); err != nil {
+		log.Printf("Error starting command: %v\n", err)
+		return err
+	}
+	if err := cmd1.Start(); err != nil {
+		log.Printf("Error starting command: %v\n", err)
+		return err
+	}
 
 	cmd3Result, err := io.ReadAll(cmd3Output)
 	if err != nil {
@@ -178,6 +202,7 @@ func findFonts() error {
 	return nil
 }
 
+// Get the icon names from the Font Awesome CSS file
 func dump() error {
 	// 138Kb is expected so we do it this way
 	resp, err := http.Get(fontAwesomeStylesUri)
@@ -192,6 +217,8 @@ func dump() error {
 		log.Printf("Failed to read response body: %v\n", err)
 		return err
 	}
+	fmt.Printf("Result:\n%s\n", string(data))
+	// TODO: Fix this regex
 	re := regexp.MustCompile(`\.fa-([^:]+):?:before[^"]+"(.*)"`)
 	for _, match := range re.FindAllStringSubmatch(string(data), -1) {
 		char := strings.Replace(match[2], "\\", "\\u", 1)
@@ -200,6 +227,7 @@ func dump() error {
 	return nil
 }
 
+// Resolve the executable name for the given pid
 func getExecutableName(pid *uint32) (string, error) {
 	if pid == nil {
 		return "", fmt.Errorf("pid is nil")
