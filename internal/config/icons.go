@@ -9,25 +9,19 @@ import (
 func GetAppIcon(name string) (string, bool) {
 	// Note:we expect the name to be lowercase but this is the subject of a discussion
 	name = strings.ToLower(name)
-	if iconCache[name] != "" {
-		return iconCache[name], true
-	}
 
 	for icon, appNames := range currentConfig.AppIcons {
 		for _, appName := range appNames {
 			match, _ := regexp.MatchString(appName, name)
 			if match {
-				iconCache[name] = icons[icon]
-				return iconCache[name], true
+				return icons[icon], true
 			}
 		}
 	}
 
 	// TODO: make this configurable
-	iconCache[name] = TrimAppName(name)
-	//iconCache[name] = icons[NoMatch]
-
-	return iconCache[name], false
+	//return icons[NoMatch], false
+	return TrimAppName(name), false
 }
 
 func IsNoMatchIcon(icon string) bool {

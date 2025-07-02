@@ -38,7 +38,10 @@ type handler struct {
 	iconProvider  *ConfigIconProvider
 }
 
-type ConfigIconProvider struct{}
+type ConfigIconProvider struct {
+	pidCache  map[uint32]string
+	nameCache map[string]string
+}
 
 type ConfigNameFormatter struct {
 	config *config.Config
@@ -53,10 +56,27 @@ func (c ConfigNameFormatter) Format(workspaceNumber int64, appIcons []string) st
 }
 
 func (c ConfigIconProvider) GetIcon(pid *uint32, nodeName string) (string, bool) {
-	name, err := getExecutableName(pid)
-	if err != nil || name == "" {
-		log.Printf("Error while getting executable name: %v\n", err)
-		name = nodeName
+	var name string
+	if pid != nil {
+		if cachedName, ok := c.pidCache[*pid]; ok {
+			name = cachedName
+		} else {
+			filename, err := getExecutableName(pid)
+			if err != nil || filename == "" {
+				log.Printf("Error while getting executable name: %v\n", err)
+				name = nodeName
+			} else {
+				c.pidCache[*pid] = filename
+				name = filename
+			}
+		}
+	}
+	if icon, ok := c.nameCache[name]; ok {
+		return icon, true
+	}
+	icon, found := config.GetAppIcon(name)
+	if found {
+		c.nameCache[name] = icon
 	}
 	return config.GetAppIcon(name)
 }
@@ -96,7 +116,10 @@ func main() {
 		log.Fatalf("Error while getting config: %v", configErr)
 	}
 	nameFormatter := NewConfigNameFormatter(appConfig)
-	iconProvider := &ConfigIconProvider{}
+	iconProvider := &ConfigIconProvider{
+		pidCache:  make(map[uint32]string, 30),
+		nameCache: make(map[string]string, 30),
+	}
 	h := handler{
 		EventHandler:  swayClient.NoOpEventHandler(),
 		nameFormatter: nameFormatter,

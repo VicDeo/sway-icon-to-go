@@ -92,7 +92,6 @@ var (
 	}
 
 	icons         = defaultIcons
-	iconCache     = map[string]string{}
 	currentConfig = &Config{}
 )
 
