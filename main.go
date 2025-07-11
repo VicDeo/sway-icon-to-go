@@ -9,13 +9,16 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"sway-icon-to-go/internal/config"
 	"sway-icon-to-go/internal/sway"
+	"syscall"
 
 	swayClient "github.com/joshuarubin/go-sway"
 )
@@ -41,6 +44,11 @@ type handler struct {
 	swayClient.EventHandler
 	nameFormatter *ConfigNameFormatter
 	iconProvider  *ConfigIconProvider
+	config        *config.Config
+	delim         string
+	uniq          bool
+	length        int
+	configPath    string
 }
 
 // ConfigIconProvider is a struct that provides the icon for the given pid and node name
@@ -91,6 +99,27 @@ func (c ConfigIconProvider) GetIcon(pid *uint32, nodeName string) (string, bool)
 	return icon, found
 }
 
+// reloadConfig reloads the configuration from files
+func (h *handler) reloadConfig() error {
+	log.Println("Reloading configuration...")
+
+	// Clear caches
+	h.iconProvider.pidCache = make(map[uint32]string, DefaultCacheSize)
+	h.iconProvider.nameCache = make(map[string]string, DefaultCacheSize)
+
+	// Reload configuration
+	newConfig, err := config.GetConfig(h.delim, h.uniq, h.length, h.configPath)
+	if err != nil {
+		return fmt.Errorf("failed to reload config: %w", err)
+	}
+
+	h.config = newConfig
+	h.nameFormatter = NewConfigNameFormatter(newConfig)
+
+	log.Println("Configuration reloaded successfully")
+	return nil
+}
+
 // Window event handler
 func (h handler) Window(ctx context.Context, event swayClient.WindowEvent) {
 	for _, b := range WindowChangeTypes {
@@ -106,6 +135,7 @@ func main() {
 	uniq := flag.Bool("u", config.DefaultUniq, "display only unique icons. True by default")
 	length := flag.Int("l", config.DefaultLength, "trim app names to this length. 12 by default")
 	delim := flag.String("d", config.DefaultDelimiter, "app separator. \"|\" by default")
+	configPath := flag.String("c", "", "path to the app-icons.yaml config file")
 	flag.Parse()
 	if flag.NArg() == 0 {
 	} else if flag.Arg(0) == "awesome" {
@@ -122,7 +152,7 @@ func main() {
 		}
 		return
 	}
-	appConfig, configErr := config.GetConfig(*delim, *uniq, *length, "")
+	appConfig, configErr := config.GetConfig(*delim, *uniq, *length, *configPath)
 	if configErr != nil {
 		log.Fatalf("Error while getting config: %v", configErr)
 	}
@@ -135,7 +165,16 @@ func main() {
 		EventHandler:  swayClient.NoOpEventHandler(),
 		nameFormatter: nameFormatter,
 		iconProvider:  iconProvider,
+		config:        appConfig,
+		delim:         *delim,
+		uniq:          *uniq,
+		length:        *length,
+		configPath:    *configPath,
 	}
+
+	// Set up signal handling for SIGHUP (configuration reload)
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGHUP)
 
 	// go-sway event loop that listens for window events
 	ctx, cancel := context.WithCancel(context.Background())
@@ -145,13 +184,24 @@ func main() {
 		log.Fatalf("failed to connect to sway: %v", err)
 	}
 
-	// Wait indefinitely
-	select {}
+	// Wait for events or signals
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case sig := <-sigChan:
+			if sig == syscall.SIGHUP {
+				if err := h.reloadConfig(); err != nil {
+					log.Printf("Failed to reload configuration: %v", err)
+				}
+			}
+		}
+	}
 }
 
 // Print the help message
 func help() {
-	fmt.Println(`usage: sway-icon-to-go [-uc] [-l LENGTH] [-d DELIMITER] [help|awesome|parse]
+	fmt.Println(`usage: sway-icon-to-go [-u] [-l LENGTH] [-d DELIMITER] [-c CONFIG_PATH] [help|awesome|parse]
   awesome    check if Font Awesome is available on your system (via fc-list)
   parse      parse Font Awesome CSS file to match icon names with their UTF-8 representation  
   help       print help
@@ -159,6 +209,9 @@ func help() {
   -u         display only unique icons. True by default
   -l         trim app names to this length. 12 by default
   -d         app delimiter. "|" by default
+
+Configuration can be reloaded at runtime by sending SIGHUP signal:
+  kill -HUP <pid>
 	`)
 }
 
