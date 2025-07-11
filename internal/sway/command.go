@@ -1,3 +1,4 @@
+// Package sway builds the commands for the sway window manager
 package sway
 
 import (
