@@ -1,3 +1,12 @@
+# Example configuration file for sway-icon-to-go
+# This file can be reloaded at runtime using: kill -HUP <pid>
+
+# Map icon names to application names (regex patterns supported)
+# format:
+#icon:
+#  - app1
+#  - app2
+
 firefox:
   - firefox
 chrome:
