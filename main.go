@@ -21,6 +21,7 @@ import (
 
 const (
 	fontAwesomeStylesUri = "https://github.com/FortAwesome/Font-Awesome/raw/6.x/css/all.css"
+	procPath             = "/proc"
 )
 
 var (
@@ -63,7 +64,9 @@ func (c ConfigNameFormatter) Format(workspaceNumber int64, appIcons []string) st
 
 // Get the icon for the given pid and node name
 func (c ConfigIconProvider) GetIcon(pid *uint32, nodeName string) (string, bool) {
-	name, found := proc.GetProcessName(pid)
+	resolver := &proc.LinuxResolver{ProcPath: procPath}
+	processManager := proc.NewProcessManager(resolver)
+	name, found := processManager.GetProcessName(pid)
 	if !found || name == "" {
 		name = nodeName
 	}
