@@ -100,7 +100,7 @@ func traverseWorkspace(node *swayClient.Node, workspaceNumber int64, workspaces 
 		if !(node.PID == nil && node.Name == "") {
 			icon, found := iconProvider.GetIcon(node.PID, node.Name)
 			if !found {
-				log.Printf("No app mapping found for %v\n", node)
+				log.Printf("No app mapping found for %+v\n", node)
 			}
 			workspaces[workspaceNumber].AddAppIcon(icon)
 		}
