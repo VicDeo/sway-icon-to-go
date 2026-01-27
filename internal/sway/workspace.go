@@ -1,5 +1,11 @@
 package sway
 
+import (
+	"fmt"
+	"log"
+	"strings"
+)
+
 // Workspace is a struct that represents a workspace
 type Workspace struct {
 	Name     string
@@ -16,12 +22,42 @@ func NewWorkspace(name string, number int64) *Workspace {
 	}
 }
 
-// GetNewName gets the new name for the workspace
-func (w *Workspace) GetNewName(nameFormatter NameFormatter) string {
-	return nameFormatter.Format(w.Number, w.AppIcons)
-}
-
 // AddAppIcon adds an app icon to the workspace
 func (w *Workspace) AddAppIcon(appIcon string) {
 	w.AppIcons = append(w.AppIcons, appIcon)
+}
+
+// ToRenameCommand produces Sway rename command for the workspace
+func (w *Workspace) ToRenameCommand(nf NameFormatter) string {
+	newName := nf.Format(w.Number, w.AppIcons)
+	// Do not rename if nothing has been changed
+	if newName == w.Name {
+		return ""
+	}
+
+	return fmt.Sprintf(
+		"rename workspace \"%s\" to \"%s\"",
+		escapeName(w.Name),
+		escapeName(newName),
+	)
+}
+
+// escapeName escapes the name for the sway command
+func escapeName(name string) string {
+	return strings.ReplaceAll(name, "\"", "\\\"")
+}
+
+// Workspaces is a map of workspace number to workspace
+type Workspaces map[int64]*Workspace
+
+// ToRenameCommand produces Sway rename command for all workspaces
+func (ww *Workspaces) ToRenameCommand(nf NameFormatter) string {
+	var commands []string
+
+	for _, workspace := range *ww {
+		commands = append(commands, workspace.ToRenameCommand(nf))
+	}
+	command := strings.Join(commands, ";")
+	log.Println(command)
+	return command
 }

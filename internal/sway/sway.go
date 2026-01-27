@@ -6,13 +6,9 @@ package sway
 import (
 	"context"
 	"log"
-	"strings"
 
 	swayClient "github.com/joshuarubin/go-sway"
 )
-
-// Workspaces is a map of workspace number to workspace
-type Workspaces map[int64]*Workspace
 
 // WorkspaceNumByName is a map of workspace name to workspace number
 type WorkspaceNumByName map[string]int64
@@ -30,8 +26,6 @@ type NameFormatter interface {
 // ProcessWorkspaces processes the workspaces and renames them according to the name formatter and icon provider
 // basing on the apps running on the workspaces
 func ProcessWorkspaces(ctx context.Context, iconProvider IconProvider, nameFormatter NameFormatter) error {
-	var commands []string
-
 	sway, err := swayClient.New(ctx)
 	if err != nil {
 		return err
@@ -58,18 +52,8 @@ func ProcessWorkspaces(ctx context.Context, iconProvider IconProvider, nameForma
 	traverseTree(tree, workspaceNumByName, workspaces, iconProvider)
 	//log.Println(workspaceApps)
 
-	// Then iterate over the workspaces and prepare the rename commands
-	for _, workspace := range workspaces {
-		newName := workspace.GetNewName(nameFormatter)
-		if newName != workspace.Name {
-			commands = append(commands, getRenameWorkspaceCommand(workspace.Name, newName))
-		}
-	}
-
 	// Send all commands at once as there could be a mess otherwise
-	command := strings.Join(commands, ";")
-	log.Println(command)
-	if _, error := sway.RunCommand(ctx, command); error != nil {
+	if _, error := sway.RunCommand(ctx, workspaces.ToRenameCommand(nameFormatter)); error != nil {
 		log.Println(error)
 		return error
 	}
