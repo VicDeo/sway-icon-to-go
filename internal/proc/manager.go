@@ -32,6 +32,7 @@ func (pm *ProcessManager) GetProcessName(pid *uint32) (string, bool) {
 	}
 	pm.mu.Lock()
 	if name, ok := pm.cache[*pid]; ok {
+		pm.mu.Unlock()
 		return name, true
 	}
 	pm.mu.Unlock()
