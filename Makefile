@@ -4,7 +4,7 @@ INSTALL_PATH=/usr/local/bin/$(BINARY_NAME)
 .PHONY: build install reload clean
 
 build:
-	go build -o $(BINARY_NAME) ./main.go
+	go build -o $(BINARY_NAME) ./cmd/main.go
 
 install: build
 	@echo "Installing to $(INSTALL_PATH)..."
