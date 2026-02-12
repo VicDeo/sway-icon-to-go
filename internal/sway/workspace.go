@@ -10,7 +10,14 @@ import (
 type Workspace struct {
 	Name     string
 	Number   int64
+	Windows  []WindowInfo
 	AppIcons []string
+}
+
+type WindowInfo struct {
+	PID   *uint32
+	Title string
+	Icon  string
 }
 
 // NewWorkspace creates a new workspace
@@ -18,6 +25,7 @@ func NewWorkspace(name string, number int64) *Workspace {
 	return &Workspace{
 		Name:     name,
 		Number:   number,
+		Windows:  make([]WindowInfo, 0, 10),
 		AppIcons: make([]string, 0, 10),
 	}
 }
@@ -25,6 +33,11 @@ func NewWorkspace(name string, number int64) *Workspace {
 // AddAppIcon adds an app icon to the workspace
 func (w *Workspace) AddAppIcon(appIcon string) {
 	w.AppIcons = append(w.AppIcons, appIcon)
+}
+
+// AddWindow adds a window to the workspace
+func (w *Workspace) AddWindow(window WindowInfo) {
+	w.Windows = append(w.Windows, window)
 }
 
 // ToRenameCommand produces Sway rename command for the workspace
@@ -55,7 +68,10 @@ func (ww *Workspaces) ToRenameCommand(nf NameFormatter) string {
 	var commands []string
 
 	for _, workspace := range *ww {
-		commands = append(commands, workspace.ToRenameCommand(nf))
+		name := workspace.ToRenameCommand(nf)
+		if name != "" {
+			commands = append(commands, name)
+		}
 	}
 	command := strings.Join(commands, ";")
 	log.Println(command)
