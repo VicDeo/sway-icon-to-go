@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"os/user"
-	"path/filepath"
 	"strconv"
 
 	"github.com/spf13/viper"
@@ -33,9 +32,8 @@ const (
 
 var (
 	configDirectories = []string{
-		".i3",
-		".config/i3",
-		".config/i3-regolith",
+		".config/sway",
+		".config/i3", // legacy support for i3
 	}
 
 	defaultIcons = map[string]string{
@@ -153,16 +151,13 @@ func getConfigFilePath(fileName string) string {
 	usr, _ := user.Current()
 	home := usr.HomeDir
 	for _, dir := range configDirectories {
-		fullDir := filepath.Join(home, dir)
-		dirInfo, dirErr := os.Stat(fullDir)
-		if dirErr != nil || !dirInfo.IsDir() {
+		resolver := NewConfigResolver(home, dir, fileName)
+		configPath, err := resolver.Resolve()
+		if err != nil {
+			log.Println("No config file found in", dir)
 			continue
 		}
-		configPath := filepath.Join(fullDir, fileName)
-		fileInfo, fileErr := os.Stat(configPath)
-		if fileErr != nil || fileInfo.IsDir() {
-			continue
-		}
+		log.Println("Config file found in", configPath)
 		return configPath
 	}
 	return ""
