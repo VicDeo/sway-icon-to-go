@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 )
 
+// ConfigResolver is a struct that resolves the config file path.
 type ConfigResolver struct {
 	UserHomeDir string
 	Path        string

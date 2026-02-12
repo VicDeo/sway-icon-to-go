@@ -38,16 +38,13 @@ var (
 type handler struct {
 	swayClient.EventHandler
 	nameFormatter *ConfigNameFormatter
-	iconProvider  *ConfigIconProvider
+	iconProvider  *IconProvider
 	config        *config.Config
 	delim         string
 	uniq          bool
 	length        int
 	configPath    string
 }
-
-// ConfigIconProvider is a struct that provides the icon for the given pid and node name
-type ConfigIconProvider struct{}
 
 // ConfigNameFormatter is a struct that formats the workspace name according to the config
 type ConfigNameFormatter struct{}
@@ -60,27 +57,6 @@ func NewConfigNameFormatter(config *config.Config) *ConfigNameFormatter {
 // Format the workspace name according to the config
 func (c ConfigNameFormatter) Format(workspaceNumber int64, appIcons []string) string {
 	return config.BuildName(workspaceNumber, appIcons)
-}
-
-// Get the icon for the given pid and node name
-func (c ConfigIconProvider) GetIcon(pid *uint32, nodeName string) (string, bool) {
-	resolver := &proc.LinuxResolver{ProcPath: procPath}
-	processManager := proc.NewProcessManager(resolver)
-	name, found := processManager.GetProcessName(pid)
-	if !found || name == "" {
-		name = nodeName
-	}
-
-	icon, found := cache.GetIcon(name)
-	if found {
-		return icon, found
-	}
-
-	icon, found = config.GetAppIcon(name)
-	if found {
-		cache.SetIcon(name, icon)
-	}
-	return icon, found
 }
 
 // reloadConfig reloads the configuration from files
@@ -139,7 +115,10 @@ func main() {
 		log.Fatalf("Error while getting config: %v", configErr)
 	}
 	nameFormatter := NewConfigNameFormatter(appConfig)
-	iconProvider := &ConfigIconProvider{}
+	resolver := proc.LinuxResolver{ProcPath: procPath}
+	processManager := proc.NewProcessManager(&resolver)
+	iconProvider := NewIconProvider(processManager, appConfig)
+
 	h := handler{
 		EventHandler:  swayClient.NoOpEventHandler(),
 		nameFormatter: nameFormatter,
