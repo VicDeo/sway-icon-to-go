@@ -4,7 +4,7 @@
 package config
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"os/user"
 	"regexp"
@@ -113,7 +113,7 @@ func NewConfig(delim string, uniq bool, length int, configPath string) (*Config,
 				iconMap := &IconToAppMap{}
 				err = viper.Unmarshal(iconMap)
 				if err == nil {
-					log.Printf("Config file is found  %s\n", configPath)
+					slog.Info("Config file is found", "path", configPath)
 					iconConfig = *iconMap
 				}
 			}
@@ -124,14 +124,14 @@ func NewConfig(delim string, uniq bool, length int, configPath string) (*Config,
 	if faIconsPath != "" {
 		fileInfo, fileErr := os.Stat(faIconsPath)
 		if fileErr == nil && !fileInfo.IsDir() {
-			log.Printf("Font Awesome config file is found  %s\n", faIconsPath)
+			slog.Info("Font Awesome config file is found", "path", faIconsPath)
 			viper.SetConfigFile(faIconsPath)
 			viper.SetConfigType("yaml")
 			if err := viper.ReadInConfig(); err == nil {
 				faIcons := &map[string]string{}
 				err = viper.Unmarshal(faIcons)
 				if err == nil {
-					log.Printf("Font Awesome config file is loaded %s\n", faIconsPath)
+					slog.Info("Font Awesome config file is loaded", "path", faIconsPath)
 					icons = *faIcons
 					for k, v := range icons {
 						icons[k], _ = strconv.Unquote(`"` + v + `"`)
@@ -151,14 +151,14 @@ func NewConfig(delim string, uniq bool, length int, configPath string) (*Config,
 }
 
 func (c *Config) GetAppIcon(name string) (string, bool) {
-	// Note:we expect the name to be lowercase but this is the subject of a discussion
+	// Note: we expect the name to be lowercase but this is the subject of a discussion
 	name = strings.ToLower(name)
 
 	for icon, appNames := range c.AppIcons {
 		for _, appName := range appNames {
 			match, err := regexp.MatchString(appName, name)
 			if err != nil {
-				log.Printf("Error while matching app name %s with %s: %v", name, appName, err)
+				slog.Warn("Error while matching app name", "name", name, "appName", appName, "error", err)
 				continue
 			}
 			if match {
@@ -184,10 +184,10 @@ func getConfigFilePath(fileName string) string {
 		resolver := NewConfigResolver(home, dir, fileName)
 		configPath, err := resolver.Resolve()
 		if err != nil {
-			log.Println("No config file found in", dir)
+			slog.Warn("No config file found in", "directory", dir)
 			continue
 		}
-		log.Println("Config file found in", configPath)
+		slog.Info("Config file found", "path", configPath)
 		return configPath
 	}
 	return ""

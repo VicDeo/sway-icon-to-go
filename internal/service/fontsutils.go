@@ -3,7 +3,7 @@ package service
 import (
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"os/exec"
 )
 
@@ -17,21 +17,21 @@ func FindFonts() error {
 	cmd3Output, _ := cmd3.StdoutPipe()
 
 	if err := cmd3.Start(); err != nil {
-		log.Printf("Error starting command: %v\n", err)
+		slog.Warn("Error starting command", "error", err)
 		return err
 	}
 	if err := cmd2.Start(); err != nil {
-		log.Printf("Error starting command: %v\n", err)
+		slog.Warn("Error starting command", "error", err)
 		return err
 	}
 	if err := cmd1.Start(); err != nil {
-		log.Printf("Error starting command: %v\n", err)
+		slog.Warn("Error starting command", "error", err)
 		return err
 	}
 
 	cmd3Result, err := io.ReadAll(cmd3Output)
 	if err != nil {
-		log.Printf("Error reading command output: %v\n", err)
+		slog.Warn("Error reading command output", "error", err)
 		return err
 	}
 

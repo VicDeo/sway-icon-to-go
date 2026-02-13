@@ -3,7 +3,7 @@ package service
 import (
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
@@ -14,14 +14,14 @@ func Dump(fontAwesomeStylesUri string) error {
 	// 138Kb is expected so we do it this way
 	resp, err := http.Get(fontAwesomeStylesUri)
 	if err != nil {
-		log.Printf("HTTP request failed: %v\n", err)
+		slog.Warn("HTTP request failed", "error", err)
 		return err
 	}
 	defer resp.Body.Close()
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("Failed to read response body: %v\n", err)
+		slog.Warn("Failed to read response body", "error", err)
 		return err
 	}
 	re := regexp.MustCompile(`\.fa-([a-zA-Z0-9\-]+)\s*{\s*--fa:\s*"(\\[a-fA-F0-9]+)"`)

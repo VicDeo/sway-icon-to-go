@@ -2,7 +2,7 @@ package sway
 
 import (
 	"context"
-	"log"
+	"log/slog"
 
 	sc "github.com/joshuarubin/go-sway"
 )
@@ -65,7 +65,7 @@ func (s *swayClient) CollectWorkspaces() (Workspaces, error) {
 func (s *swayClient) RenameWorkspaces(workspaces Workspaces, nameFormatter NameFormatter) error {
 	// Send all commands at once as there could be a mess otherwise
 	if _, err := s.client.RunCommand(s.ctx, workspaces.ToRenameCommand(nameFormatter)); err != nil {
-		log.Println(err)
+		slog.Warn("Error while renaming workspaces", "error", err)
 		return err
 	}
 	return nil

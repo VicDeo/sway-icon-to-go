@@ -1,7 +1,7 @@
 package proc
 
 import (
-	"log"
+	"log/slog"
 	"sync"
 )
 
@@ -39,7 +39,7 @@ func (pm *ProcessManager) GetProcessName(pid *uint32) (string, bool) {
 
 	name, err := pm.resolver.Resolve(*pid)
 	if err != nil {
-		log.Printf("error while getting executable name: %v\n", err)
+		slog.Warn("error while getting executable name", "error", err)
 		return "", false
 	}
 

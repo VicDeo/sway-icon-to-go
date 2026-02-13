@@ -2,7 +2,7 @@ package sway
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"strings"
 )
 
@@ -74,6 +74,6 @@ func (ww *Workspaces) ToRenameCommand(nf NameFormatter) string {
 		}
 	}
 	command := strings.Join(commands, ";")
-	log.Println(command)
+	slog.Info("Renaming command", "command", command)
 	return command
 }
