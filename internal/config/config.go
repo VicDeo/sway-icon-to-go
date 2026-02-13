@@ -7,7 +7,9 @@ import (
 	"log"
 	"os"
 	"os/user"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -92,12 +94,11 @@ var (
 		},
 	}
 
-	icons         = defaultIcons
-	currentConfig = &Config{}
+	icons = defaultIcons
 )
 
-// GetConfig creates a new config for the app
-func GetConfig(delim string, uniq bool, length int, configPath string) (*Config, error) {
+// NewConfig creates a new config for the app.
+func NewConfig(delim string, uniq bool, length int, configPath string) (*Config, error) {
 	iconConfig := DefaultIconConfig
 	if configPath == "" {
 		configPath = getConfigFilePath(iconFileName)
@@ -139,11 +140,40 @@ func GetConfig(delim string, uniq bool, length int, configPath string) (*Config,
 			}
 		}
 	}
-	currentConfig.AppIcons = iconConfig
-	currentConfig.Length = length
-	currentConfig.Delimiter = delim
-	currentConfig.Uniq = uniq
+
+	currentConfig := &Config{
+		AppIcons:  iconConfig,
+		Length:    length,
+		Delimiter: delim,
+		Uniq:      uniq,
+	}
 	return currentConfig, nil
+}
+
+func (c *Config) GetAppIcon(name string) (string, bool) {
+	// Note:we expect the name to be lowercase but this is the subject of a discussion
+	name = strings.ToLower(name)
+
+	for icon, appNames := range c.AppIcons {
+		for _, appName := range appNames {
+			match, err := regexp.MatchString(appName, name)
+			if err != nil {
+				log.Printf("Error while matching app name %s with %s: %v", name, appName, err)
+				continue
+			}
+			if match {
+				return icons[icon], true
+			}
+		}
+	}
+
+	// TODO: make this configurable
+	//return icons[NoMatch], false
+	return name, false
+}
+
+func IsNoMatchIcon(icon string) bool {
+	return icon == icons[NoMatch]
 }
 
 // getConfigFilePath gets the config file path for the given file name

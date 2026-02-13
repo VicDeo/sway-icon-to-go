@@ -6,7 +6,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"sway-icon-to-go/internal/cache"
@@ -37,7 +37,8 @@ var (
 // handler is a struct that handles the sway events
 type handler struct {
 	swayClient.EventHandler
-	nameFormatter *ConfigNameFormatter
+	logger        *slog.Logger
+	nameFormatter *NameFormatter
 	iconProvider  *IconProvider
 	config        *config.Config
 	delim         string
@@ -46,35 +47,22 @@ type handler struct {
 	configPath    string
 }
 
-// ConfigNameFormatter is a struct that formats the workspace name according to the config
-type ConfigNameFormatter struct{}
-
-// NewConfigNameFormatter creates a new ConfigNameFormatter with the given config
-func NewConfigNameFormatter(config *config.Config) *ConfigNameFormatter {
-	return &ConfigNameFormatter{}
-}
-
-// Format the workspace name according to the config
-func (c ConfigNameFormatter) Format(workspaceNumber int64, appIcons []string) string {
-	return config.BuildName(workspaceNumber, appIcons)
-}
-
 // reloadConfig reloads the configuration from files
 func (h *handler) reloadConfig() error {
-	log.Println("Reloading configuration...")
+	h.logger.Info("Reloading configuration...")
 
 	cache.Clear()
 
 	// Reload configuration
-	newConfig, err := config.GetConfig(h.delim, h.uniq, h.length, h.configPath)
+	newConfig, err := config.NewConfig(h.delim, h.uniq, h.length, h.configPath)
 	if err != nil {
 		return fmt.Errorf("failed to reload config: %w", err)
 	}
 
 	h.config = newConfig
-	h.nameFormatter = NewConfigNameFormatter(newConfig)
+	h.nameFormatter = NewNameFormatter(newConfig)
 
-	log.Println("Configuration reloaded successfully")
+	h.logger.Info("Configuration reloaded successfully")
 	return nil
 }
 
@@ -83,44 +71,51 @@ func (h handler) Window(ctx context.Context, event swayClient.WindowEvent) {
 	for _, b := range WindowChangeTypes {
 		if b == event.Change {
 			if err := sway.ProcessWorkspaces(ctx, h.iconProvider, h.nameFormatter); err != nil {
-				log.Printf("Error while processing the event : %s\n", err)
+				h.logger.Error("Error while processing the event", "error", err)
 			}
 		}
 	}
 }
 
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
+
 	uniq := flag.Bool("u", config.DefaultUniq, "display only unique icons. True by default")
 	length := flag.Int("l", config.DefaultLength, "trim app names to this length. 12 by default")
 	delim := flag.String("d", config.DefaultDelimiter, "app separator. \"|\" by default")
 	configPath := flag.String("c", "", "path to the app-icons.yaml config file")
 	flag.Parse()
-	if flag.NArg() == 0 {
-	} else if flag.Arg(0) == "awesome" {
-		if err := service.FindFonts(); err != nil {
-			log.Fatalf("Error while finding fonts: %v", err)
+	if flag.NArg() > 0 {
+		if flag.Arg(0) == "awesome" {
+			if err := service.FindFonts(); err != nil {
+				logger.Error("Error while finding fonts", "error", err)
+				os.Exit(1)
+			}
+			return
+		} else if flag.Arg(0) == "help" {
+			help()
+			return
+		} else if flag.Arg(0) == "parse" {
+			if err := service.Dump(fontAwesomeStylesUri); err != nil {
+				logger.Error("Error while parsing Font Awesome CSS file", "error", err)
+				os.Exit(1)
+			}
+			return
 		}
-		return
-	} else if flag.Arg(0) == "help" {
-		help()
-		return
-	} else if flag.Arg(0) == "parse" {
-		if err := service.Dump(fontAwesomeStylesUri); err != nil {
-			log.Fatalf("Error while parsing Font Awesome CSS file: %v", err)
-		}
-		return
 	}
-	appConfig, configErr := config.GetConfig(*delim, *uniq, *length, *configPath)
+	appConfig, configErr := config.NewConfig(*delim, *uniq, *length, *configPath)
 	if configErr != nil {
-		log.Fatalf("Error while getting config: %v", configErr)
+		logger.Error("Error while getting config", "error", configErr)
+		os.Exit(1)
 	}
-	nameFormatter := NewConfigNameFormatter(appConfig)
+	nameFormatter := NewNameFormatter(appConfig)
 	resolver := proc.LinuxResolver{ProcPath: procPath}
 	processManager := proc.NewProcessManager(&resolver)
 	iconProvider := NewIconProvider(processManager, appConfig)
 
 	h := handler{
 		EventHandler:  swayClient.NoOpEventHandler(),
+		logger:        logger,
 		nameFormatter: nameFormatter,
 		iconProvider:  iconProvider,
 		config:        appConfig,
@@ -133,7 +128,7 @@ func main() {
 	// Set up signal handling for SIGHUP (configuration reload)
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGHUP)
-	log.Printf("Signal handler set up, PID: %d", os.Getpid())
+	logger.Info("Signal handler set up", "pid", os.Getpid())
 
 	// go-sway event loop that listens for window events
 	ctx, cancel := context.WithCancel(context.Background())
@@ -142,7 +137,8 @@ func main() {
 	go func() {
 		err := swayClient.Subscribe(ctx, h, swayClient.EventTypeWindow)
 		if err != nil {
-			log.Fatalf("failed to connect to sway: %v", err)
+			logger.Error("failed to connect to sway", "error", err)
+			os.Exit(1)
 		}
 	}()
 
@@ -152,11 +148,11 @@ func main() {
 		case <-ctx.Done():
 			return
 		case sig := <-sigChan:
-			fmt.Printf("Received signal: %v", sig)
+			logger.Info("Received signal", "signal", sig)
 			if sig == syscall.SIGHUP {
-				fmt.Println("Reloading configuration...")
+				logger.Info("Reloading configuration...")
 				if err := h.reloadConfig(); err != nil {
-					log.Printf("Failed to reload configuration: %v", err)
+					logger.Warn("Failed to reload configuration", "error", err)
 				}
 			}
 		}

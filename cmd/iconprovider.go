@@ -44,7 +44,7 @@ func (i *IconProvider) AddIcons(workspaces sway.Workspaces) error {
 // GetIcon provides the icon for the given pid and node name.
 func (i *IconProvider) GetIcon(pid *uint32, name string) (string, bool) {
 	// Search by name first
-	icon, found := config.GetAppIcon(name)
+	icon, found := i.config.GetAppIcon(name)
 	if found {
 		return icon, found
 	}
@@ -55,7 +55,7 @@ func (i *IconProvider) GetIcon(pid *uint32, name string) (string, bool) {
 		return name, found
 	}
 
-	icon, found = config.GetAppIcon(appName)
+	icon, found = i.config.GetAppIcon(appName)
 	if found {
 		return icon, found
 	}

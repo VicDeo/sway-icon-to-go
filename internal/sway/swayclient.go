@@ -64,9 +64,9 @@ func (s *swayClient) CollectWorkspaces() (Workspaces, error) {
 
 func (s *swayClient) RenameWorkspaces(workspaces Workspaces, nameFormatter NameFormatter) error {
 	// Send all commands at once as there could be a mess otherwise
-	if _, error := s.client.RunCommand(s.ctx, workspaces.ToRenameCommand(nameFormatter)); error != nil {
-		log.Println(error)
-		return error
+	if _, err := s.client.RunCommand(s.ctx, workspaces.ToRenameCommand(nameFormatter)); err != nil {
+		log.Println(err)
+		return err
 	}
 	return nil
 }
