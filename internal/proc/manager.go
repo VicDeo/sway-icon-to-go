@@ -3,6 +3,11 @@ package proc
 import (
 	"log/slog"
 	"sync"
+	"time"
+)
+
+const (
+	CacheTTL = 15 * time.Minute
 )
 
 // NameResolver resolves the name of the process executable
@@ -13,16 +18,21 @@ type NameResolver interface {
 // ProcessManager holds cache of filename by pid
 type ProcessManager struct {
 	mu       sync.Mutex
-	cache    map[uint32]string
+	cache    map[uint32]CacheItem
 	resolver NameResolver
 }
 
 // NewProcessManager creates ProcessManager instance
 func NewProcessManager(resolver NameResolver) *ProcessManager {
 	return &ProcessManager{
-		cache:    make(map[uint32]string),
+		cache:    make(map[uint32]CacheItem),
 		resolver: resolver,
 	}
+}
+
+type CacheItem struct {
+	Name       string
+	BestBefore time.Time
 }
 
 // GetProcessName gets process name by pid
@@ -31,9 +41,9 @@ func (pm *ProcessManager) GetProcessName(pid *uint32) (string, bool) {
 		return "", false
 	}
 	pm.mu.Lock()
-	if name, ok := pm.cache[*pid]; ok {
+	if item, ok := pm.cache[*pid]; ok && item.BestBefore.After(time.Now()) {
 		pm.mu.Unlock()
-		return name, true
+		return item.Name, true
 	}
 	pm.mu.Unlock()
 
@@ -44,7 +54,7 @@ func (pm *ProcessManager) GetProcessName(pid *uint32) (string, bool) {
 	}
 
 	pm.mu.Lock()
-	pm.cache[*pid] = name
+	pm.cache[*pid] = CacheItem{Name: name, BestBefore: time.Now().Add(CacheTTL)}
 	pm.mu.Unlock()
 
 	return name, true
