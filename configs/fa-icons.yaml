@@ -1,22 +1,18 @@
-# Font Awesome icons
-# format:
-# icon-name: icon-code
-
-0: \u30
-1: \u31
-2: \u32
-3: \u33
-4: \u34
-5: \u35
-6: \u36
-7: \u37
-8: \u38
-9: \u39
+0: \u0030
+1: \u0031
+2: \u0032
+3: \u0033
+4: \u0034
+5: \u0035
+6: \u0036
+7: \u0037
+8: \u0038
+9: \u0039
 fill-drip: \uf576
 arrows-to-circle: \ue4bd
 circle-chevron-right: \uf138
 chevron-circle-right: \uf138
-at: \u40
+at: \u0040
 trash-can: \uf2ed
 trash-alt: \uf2ed
 text-height: \uf034
@@ -108,7 +104,7 @@ pager: \uf815
 address-book: \uf2b9
 contact-book: \uf2b9
 strikethrough: \uf0cc
-k: \u4b
+k: \u004b
 landmark-flag: \ue51c
 pencil: \uf303
 pencil-alt: \uf303
@@ -143,7 +139,7 @@ face-grin-tongue-squint: \uf58a
 grin-tongue-squint: \uf58a
 spray-can: \uf5bd
 truck-monster: \uf63b
-w: \u57
+w: \u0057
 earth-africa: \uf57c
 globe-africa: \uf57c
 rainbow: \uf75b
@@ -243,7 +239,7 @@ wheat-awn: \ue2cd
 wheat-alt: \ue2cd
 ankh: \uf644
 hands-holding-child: \ue4fa
-asterisk: \u2a
+asterisk: \u002a
 square-check: \uf14a
 check-square: \uf14a
 peseta-sign: \ue221
@@ -328,14 +324,14 @@ land-mine-on: \ue51b
 i-cursor: \uf246
 stamp: \uf5bf
 stairs: \ue289
-i: \u49
+i: \u0049
 hryvnia-sign: \uf6f2
 hryvnia: \uf6f2
 pills: \uf484
 face-grin-wide: \uf581
 grin-alt: \uf581
 tooth: \uf5c9
-v: \u56
+v: \u0056
 bangladeshi-taka-sign: \ue2e6
 bicycle: \uf206
 staff-snake: \ue579
@@ -354,8 +350,8 @@ igloo: \uf7ae
 joint: \uf595
 angle-right: \uf105
 horse: \uf6f0
-q: \u51
-g: \u47
+q: \u0051
+g: \u0047
 notes-medical: \uf481
 temperature-half: \uf2c9
 temperature-2: \uf2c9
@@ -391,7 +387,7 @@ gauge-med: \uf624
 tachometer-alt-average: \uf624
 wand-magic-sparkles: \ue2ca
 magic-wand-sparkles: \ue2ca
-e: \u45
+e: \u0045
 pen-clip: \uf305
 pen-alt: \uf305
 bridge-circle-exclamation: \ue4ca
@@ -411,7 +407,7 @@ synagogue: \uf69b
 person-half-dress: \ue548
 road-bridge: \ue563
 location-arrow: \uf124
-c: \u43
+c: \u0043
 tablet-button: \uf10a
 building-lock: \ue4d6
 pizza-slice: \uf818
@@ -468,6 +464,8 @@ right-to-bracket: \uf2f6
 sign-in-alt: \uf2f6
 venus: \uf221
 passport: \uf5ab
+thumbtack-slash: \ue68f
+thumb-tack-slash: \ue68f
 heart-pulse: \uf21e
 heartbeat: \uf21e
 people-carry-box: \uf4ce
@@ -493,7 +491,7 @@ arrow-circle-up: \uf0aa
 toggle-on: \uf205
 person-walking: \uf554
 walking: \uf554
-l: \u4c
+l: \u004c
 fire: \uf06d
 bed-pulse: \uf487
 procedures: \uf487
@@ -588,6 +586,7 @@ square-nfi: \ue576
 arrow-up-from-ground-water: \ue4b5
 martini-glass: \uf57b
 glass-martini-alt: \uf57b
+square-binary: \ue69b
 rotate-left: \uf2ea
 rotate-back: \uf2ea
 rotate-backward: \uf2ea
@@ -764,16 +763,16 @@ table-cells-column-lock: \ue678
 church: \uf51d
 comments-dollar: \uf653
 democrat: \uf747
-z: \u5a
+z: \u005a
 person-skiing: \uf7c9
 skiing: \uf7c9
 road-lock: \ue567
-a: \u41
+a: \u0041
 temperature-arrow-down: \ue03f
 temperature-down: \ue03f
 feather-pointed: \uf56b
 feather-alt: \uf56b
-p: \u50
+p: \u0050
 snowflake: \uf2dc
 newspaper: \uf1ea
 rectangle-ad: \uf641
@@ -796,7 +795,7 @@ language: \uf1ab
 face-kiss-wink-heart: \uf598
 kiss-wink-heart: \uf598
 filter: \uf0b0
-question: \u3f
+question: \u003f
 file-signature: \uf573
 up-down-left-right: \uf0b2
 arrows-alt: \uf0b2
@@ -819,7 +818,7 @@ krw: \uf159
 won: \uf159
 virus-covid: \ue4a8
 austral-sign: \ue0a9
-f: \u46
+f: \u0046
 leaf: \uf06c
 road: \uf018
 taxi: \uf1ba
@@ -859,7 +858,7 @@ signs-post: \uf277
 map-signs: \uf277
 cash-register: \uf788
 person-circle-question: \ue542
-h: \u48
+h: \u0048
 tarp: \ue57b
 screwdriver-wrench: \uf7d9
 tools: \uf7d9
@@ -882,7 +881,7 @@ toilet-paper-slash: \ue072
 apple-whole: \uf5d1
 apple-alt: \uf5d1
 kitchen-set: \ue51a
-r: \u52
+r: \u0052
 temperature-quarter: \uf2ca
 temperature-1: \uf2ca
 thermometer-1: \uf2ca
@@ -1007,6 +1006,7 @@ face-grin-squint: \uf585
 grin-squint: \uf585
 hand-holding-dollar: \uf4c0
 hand-holding-usd: \uf4c0
+chart-diagram: \ue695
 bacterium: \ue05a
 hand-pointer: \uf25a
 drum-steelpan: \uf56a
@@ -1039,6 +1039,7 @@ door-closed: \uf52a
 shield-virus: \ue06c
 dice-six: \uf526
 mosquito-net: \ue52c
+file-fragment: \ue697
 bridge-water: \ue4ce
 person-booth: \uf756
 text-width: \uf035
@@ -1071,7 +1072,7 @@ ruler: \uf545
 align-left: \uf036
 dice-d6: \uf6d1
 restroom: \uf7bd
-j: \u4a
+j: \u004a
 users-viewfinder: \ue595
 file-video: \uf1c8
 up-right-from-square: \uf35d
@@ -1081,7 +1082,7 @@ th: \uf00a
 file-pdf: \uf1c1
 book-bible: \uf647
 bible: \uf647
-o: \u4f
+o: \u004f
 suitcase-medical: \uf0fa
 medkit: \uf0fa
 user-secret: \uf21b
@@ -1220,9 +1221,10 @@ vials: \uf493
 plug-circle-plus: \ue55f
 place-of-worship: \uf67f
 grip-vertical: \uf58e
+hexagon-nodes: \ue699
 arrow-turn-up: \uf148
 level-up: \uf148
-u: \u55
+u: \u0055
 square-root-variable: \uf698
 square-root-alt: \uf698
 clock: \uf017
@@ -1232,7 +1234,7 @@ step-backward: \uf048
 pallet: \uf482
 faucet: \ue005
 baseball-bat-ball: \uf432
-s: \u53
+s: \u0053
 timeline: \ue29c
 keyboard: \uf11c
 caret-down: \uf0d7
@@ -1281,7 +1283,7 @@ venus-double: \uf226
 images: \uf302
 calculator: \uf1ec
 people-pulling: \ue535
-n: \u4e
+n: \u004e
 cable-car: \uf7da
 tram: \uf7da
 cloud-rain: \uf73d
@@ -1317,7 +1319,7 @@ home-alt: \uf015
 home-lg-alt: \uf015
 calendar-week: \uf784
 laptop-medical: \uf812
-b: \u42
+b: \u0042
 file-medical: \uf477
 dice-one: \uf525
 kiwi-bird: \uf535
@@ -1380,7 +1382,7 @@ florin-sign: \ue184
 arrow-down-short-wide: \uf884
 sort-amount-desc: \uf884
 sort-amount-down-alt: \uf884
-less-than: \u3c
+less-than: \u003c
 angle-down: \uf107
 car-tunnel: \ue4de
 head-side-cough: \ue061
@@ -1433,7 +1435,7 @@ hands-helping: \uf4c4
 location-dot: \uf3c5
 map-marker-alt: \uf3c5
 file: \uf15b
-greater-than: \u3e
+greater-than: \u003e
 person-swimming: \uf5c4
 swimmer: \uf5c4
 arrow-down: \uf063
@@ -1539,7 +1541,7 @@ user-shield: \uf505
 wind: \uf72e
 car-burst: \uf5e1
 car-crash: \uf5e1
-y: \u59
+y: \u0059
 person-snowboarding: \uf7ce
 snowboarding: \uf7ce
 truck-fast: \uf48b
@@ -1570,8 +1572,8 @@ child-rifle: \ue4e0
 gun: \ue19b
 square-phone: \uf098
 phone-square: \uf098
-plus: \u2b
-add: \u2b
+plus: \u002b
+add: \u002b
 expand: \uf065
 computer: \ue4e5
 xmark: \uf00d
@@ -1596,7 +1598,7 @@ arrow-down-up-lock: \ue4b0
 lines-leaning: \ue51e
 ruler-combined: \uf546
 copyright: \uf1f9
-equals: \u3d
+equals: \u003d
 blender: \uf517
 teeth: \uf62e
 shekel-sign: \uf20b
@@ -1609,6 +1611,7 @@ rocket: \uf135
 photo-film: \uf87c
 photo-video: \uf87c
 folder-minus: \uf65d
+hexagon-nodes-bolt: \ue69a
 store: \uf54e
 arrow-trend-up: \ue098
 plug-circle-minus: \ue55e
@@ -1645,8 +1648,8 @@ traffic-light: \uf637
 thermometer: \uf491
 vr-cardboard: \uf729
 hand-middle-finger: \uf806
-percent: \u25
-percentage: \u25
+percent: \u0025
+percentage: \u0025
 truck-moving: \uf4df
 glass-water-droplet: \ue4f5
 display: \ue163
@@ -1696,6 +1699,7 @@ shield: \uf132
 shield-blank: \uf132
 arrow-up-short-wide: \uf885
 sort-amount-up-alt: \uf885
+comment-nodes: \ue696
 house-medical: \ue3b2
 golf-ball-tee: \uf450
 golf-ball: \uf450
@@ -1727,11 +1731,11 @@ globe-oceania: \ue47b
 square-xmark: \uf2d3
 times-square: \uf2d3
 xmark-square: \uf2d3
-hashtag: \u23
+hashtag: \u0023
 up-right-and-down-left-from-center: \uf424
 expand-alt: \uf424
 oil-can: \uf613
-t: \u54
+t: \u0054
 hippo: \uf6ed
 chart-column: \ue0e3
 infinity: \uf534
@@ -1787,7 +1791,7 @@ tachometer-fast: \uf62a
 shower: \uf2cc
 desktop: \uf390
 desktop-alt: \uf390
-m: \u4d
+m: \u004d
 table-list: \uf00b
 th-list: \uf00b
 comment-sms: \uf7cd
@@ -1886,6 +1890,7 @@ window-minimize: \uf2d1
 mug-saucer: \uf0f4
 coffee: \uf0f4
 brush: \uf55d
+file-half-dashed: \ue698
 mask: \uf6fa
 magnifying-glass-minus: \uf010
 search-minus: \uf010
@@ -1905,21 +1910,22 @@ sticky-note: \uf249
 bug-slash: \ue490
 arrow-up-from-water-pump: \ue4b6
 bone: \uf5d7
+table-cells-row-unlock: \ue691
 user-injured: \uf728
 face-sad-tear: \uf5b4
 sad-tear: \uf5b4
 plane: \uf072
 tent-arrows-down: \ue581
-exclamation: \u21
+exclamation: \u0021
 arrows-spin: \ue4bb
 print: \uf02f
 turkish-lira-sign: \ue2bb
 try: \ue2bb
 turkish-lira: \ue2bb
-dollar-sign: \u24
-dollar: \u24
-usd: \u24
-x: \u58
+dollar-sign: \u0024
+dollar: \u0024
+usd: \u0024
+x: \u0058
 magnifying-glass-dollar: \uf688
 search-dollar: \uf688
 users-gear: \uf509
@@ -1932,7 +1938,7 @@ museum: \uf19c
 university: \uf19c
 umbrella: \uf0e9
 trowel: \ue589
-d: \u44
+d: \u0044
 stapler: \ue5af
 masks-theater: \uf630
 theater-masks: \uf630
@@ -1988,6 +1994,7 @@ centercode: \uf380
 glide-g: \uf2a6
 drupal: \uf1a9
 jxl: \ue67b
+dart-lang: \ue693
 hire-a-helper: \uf3b0
 creative-commons-by: \uf4e7
 unity: \ue049
@@ -2073,6 +2080,7 @@ scribd: \uf28a
 debian: \ue60b
 openid: \uf19b
 instalod: \ue081
+files-pinwheel: \ue69f
 expeditedssl: \uf23e
 sellcast: \uf2da
 square-twitter: \uf081
@@ -2114,6 +2122,7 @@ square-letterboxd: \ue62e
 sticker-mule: \uf3f7
 creative-commons-zero: \uf4f3
 hips: \uf452
+css: \ue6a2
 behance: \uf1b4
 reddit: \uf1a1
 discord: \uf392
@@ -2257,6 +2266,7 @@ magento: \uf3c4
 spotify: \uf1bc
 optin-monster: \uf23c
 fly: \uf417
+square-bluesky: \ue6a3
 aviato: \uf421
 itunes: \uf3b4
 cuttlefish: \uf38c
@@ -2301,6 +2311,7 @@ linkedin: \uf08c
 hubspot: \uf3b2
 deploydog: \uf38e
 twitch: \uf1e8
+flutter: \ue694
 ravelry: \uf2d9
 mixer: \ue056
 square-lastfm: \uf203

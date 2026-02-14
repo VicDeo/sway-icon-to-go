@@ -30,8 +30,10 @@ func Dump(fontAwesomeStylesUri string) error {
 	}
 	re := regexp.MustCompile(`\.fa-([a-zA-Z0-9\-]+)\s*{\s*--fa:\s*"(\\[a-fA-F0-9]+)"`)
 	for _, match := range re.FindAllStringSubmatch(string(data), -1) {
-		char := strings.Replace(match[2], "\\", "\\u", 1)
-		fmt.Printf("%s: %s\n", match[1], char)
+		hexValue := strings.TrimPrefix(match[2], "\\")
+		//Format as an 4-digit Go Unicode literal (\u0000)
+		escaped := fmt.Sprintf("\\u%04s", hexValue)
+		fmt.Printf("%s: %s\n", match[1], escaped)
 	}
 	return nil
 }
