@@ -50,8 +50,6 @@ type handler struct {
 func (h *handler) reloadConfig() error {
 	slog.Info("Reloading configuration...")
 
-	cache.Clear()
-
 	// Reload configuration
 	newConfig, err := config.NewConfig(h.delim, h.uniq, h.length, h.configPath)
 	if err != nil {
@@ -60,7 +58,7 @@ func (h *handler) reloadConfig() error {
 
 	h.config = newConfig
 	h.nameFormatter = NewNameFormatter(newConfig)
-
+	h.iconProvider.ClearCache()
 	slog.Info("Configuration reloaded successfully")
 	return nil
 }
@@ -87,10 +85,12 @@ func main() {
 	flag.Parse()
 	if flag.NArg() > 0 {
 		if flag.Arg(0) == "awesome" {
-			if err := service.FindFonts(); err != nil {
+			fonts, err := service.FindFonts()
+			if err != nil {
 				slog.Error("Error while finding fonts", "error", err)
 				os.Exit(1)
 			}
+			fmt.Println(fonts)
 			return
 		} else if flag.Arg(0) == "help" {
 			help()
@@ -111,7 +111,8 @@ func main() {
 	nameFormatter := NewNameFormatter(appConfig)
 	resolver := proc.LinuxResolver{ProcPath: procPath}
 	processManager := proc.NewProcessManager(&resolver)
-	iconProvider := NewIconProvider(processManager, appConfig)
+	iconCache := cache.NewCache()
+	iconProvider := NewIconProvider(processManager, appConfig, iconCache)
 
 	h := handler{
 		EventHandler:  swayClient.NoOpEventHandler(),

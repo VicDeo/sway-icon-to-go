@@ -5,19 +5,18 @@ package config
 
 import (
 	"log/slog"
-	"os"
 	"os/user"
-	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/spf13/viper"
 )
 
+// IconToAppMap is a map of icon names to one or more application names (regex patterns supported).
 type IconToAppMap map[string][]string
+type AppToIconMap map[string]string
 
+// Config is a struct that contains the config for the app.
 type Config struct {
-	AppIcons  IconToAppMap
+	AppToIcon AppToIconMap
 	Length    int
 	Delimiter string
 	Uniq      bool
@@ -38,7 +37,7 @@ var (
 		".config/i3", // legacy support for i3
 	}
 
-	defaultIcons = map[string]string{
+	defaultFaIcons = map[string]string{
 		"chrome":      "\uf268",
 		"comment":     "\uf075",
 		"edit":        "\uf044",
@@ -47,7 +46,7 @@ var (
 		"question":    "\uf128",
 	}
 
-	DefaultIconConfig = IconToAppMap{
+	defaultIconConfig = IconToAppMap{
 		"firefox": []string{"firefox"},
 		"chrome": []string{
 			"chromium-browser",
@@ -93,56 +92,65 @@ var (
 			NoMatch,
 		},
 	}
-
-	icons = defaultIcons
 )
 
 // NewConfig creates a new config for the app.
 func NewConfig(delim string, uniq bool, length int, configPath string) (*Config, error) {
-	iconConfig := DefaultIconConfig
+	iconConfig := defaultIconConfig
+	faIcons := defaultFaIcons
+
 	if configPath == "" {
 		configPath = getConfigFilePath(iconFileName)
 	}
 
 	if configPath != "" {
-		fileInfo, fileErr := os.Stat(configPath)
-		if fileErr == nil && !fileInfo.IsDir() {
-			viper.SetConfigFile(configPath)
-			viper.SetConfigType("yaml")
-			if err := viper.ReadInConfig(); err == nil {
-				iconMap := &IconToAppMap{}
-				err = viper.Unmarshal(iconMap)
-				if err == nil {
-					slog.Info("Config file is found", "path", configPath)
-					iconConfig = *iconMap
-				}
+		configFile, err := NewConfigFile(configPath)
+		// if error just use default icons
+		if err == nil {
+			loadedIconConfig := &IconToAppMap{}
+			if err := configFile.Load(loadedIconConfig); err == nil {
+				iconConfig = *loadedIconConfig
 			}
 		}
 	}
 
 	faIconsPath := getConfigFilePath(faFileName)
 	if faIconsPath != "" {
-		fileInfo, fileErr := os.Stat(faIconsPath)
-		if fileErr == nil && !fileInfo.IsDir() {
-			slog.Info("Font Awesome config file is found", "path", faIconsPath)
-			viper.SetConfigFile(faIconsPath)
-			viper.SetConfigType("yaml")
-			if err := viper.ReadInConfig(); err == nil {
-				faIcons := &map[string]string{}
-				err = viper.Unmarshal(faIcons)
-				if err == nil {
-					slog.Info("Font Awesome config file is loaded", "path", faIconsPath)
-					icons = *faIcons
-					for k, v := range icons {
-						icons[k], _ = strconv.Unquote(`"` + v + `"`)
+		configFile, err := NewConfigFile(faIconsPath)
+		// if error just use default Font Awesome icons
+		if err == nil {
+			loadedFaIcons := &map[string]string{}
+			if err := configFile.Load(loadedFaIcons); err == nil {
+				faIcons = *loadedFaIcons
+				for k, v := range faIcons {
+					faIcons[k], err = strconv.Unquote(`"` + v + `"`)
+					if err != nil {
+						slog.Warn("Error while unquoting icon", "icon", v, "error", err)
 					}
 				}
 			}
 		}
 	}
 
+	// Now transform icon name []app name to
+	// icon name [app name1, app name2, ...] to
+	// app name1[icon name], app name2[icon name], ...
+	iconByAppName := make(map[string]string)
+	for icon, appNames := range iconConfig {
+		faIcon, ok := faIcons[icon]
+		if !ok {
+			slog.Warn("FA icon not found", "icon", icon)
+			continue
+		}
+
+		for _, appName := range appNames {
+			// Note: we expect the name to be lowercase but this is the subject of a discussion
+			iconByAppName[strings.ToLower(appName)] = faIcon
+		}
+	}
+
 	currentConfig := &Config{
-		AppIcons:  iconConfig,
+		AppToIcon: iconByAppName,
 		Length:    length,
 		Delimiter: delim,
 		Uniq:      uniq,
@@ -150,41 +158,19 @@ func NewConfig(delim string, uniq bool, length int, configPath string) (*Config,
 	return currentConfig, nil
 }
 
-func (c *Config) GetAppIcon(name string) (string, bool) {
-	// Note: we expect the name to be lowercase but this is the subject of a discussion
-	name = strings.ToLower(name)
-
-	for icon, appNames := range c.AppIcons {
-		for _, appName := range appNames {
-			match, err := regexp.MatchString(appName, name)
-			if err != nil {
-				slog.Warn("Error while matching app name", "name", name, "appName", appName, "error", err)
-				continue
-			}
-			if match {
-				return icons[icon], true
-			}
-		}
-	}
-
-	// TODO: make this configurable
-	//return icons[NoMatch], false
-	return name, false
-}
-
-func IsNoMatchIcon(icon string) bool {
-	return icon == icons[NoMatch]
-}
-
 // getConfigFilePath gets the config file path for the given file name
 func getConfigFilePath(fileName string) string {
-	usr, _ := user.Current()
+	usr, err := user.Current()
+	if err != nil {
+		slog.Warn("Error while getting current user", "error", err)
+		return ""
+	}
 	home := usr.HomeDir
 	for _, dir := range configDirectories {
 		resolver := NewConfigResolver(home, dir, fileName)
 		configPath, err := resolver.Resolve()
 		if err != nil {
-			slog.Warn("No config file found in", "directory", dir)
+			slog.Warn("No config file found", "directory", dir, "error", err)
 			continue
 		}
 		slog.Info("Config file found", "path", configPath)
