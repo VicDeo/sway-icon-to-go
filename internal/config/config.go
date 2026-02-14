@@ -88,7 +88,7 @@ var (
 			"discord",
 			"Telegram",
 		},
-		"question": []string{
+		"question-circle": []string{
 			NoMatch,
 		},
 	}

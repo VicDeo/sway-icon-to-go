@@ -17,7 +17,6 @@ type Workspace struct {
 type WindowInfo struct {
 	PID   *uint32
 	Title string
-	Icon  string
 }
 
 // NewWorkspace creates a new workspace
@@ -74,6 +73,6 @@ func (ww *Workspaces) ToRenameCommand(nf NameFormatter) string {
 		}
 	}
 	command := strings.Join(commands, ";")
-	slog.Info("Renaming command", "command", command)
+	slog.Info("Command is ready to be executed", "command", command)
 	return command
 }

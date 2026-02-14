@@ -24,7 +24,7 @@ image:
 cog:
   - yast2
 envelope:
-  -  thunderbird
+  - thunderbird
 edit:
   - jetbrains-idea-ce
   - code

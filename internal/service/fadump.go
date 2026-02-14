@@ -18,6 +18,10 @@ func Dump(fontAwesomeStylesUri string) error {
 		return err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		slog.Warn("HTTP request failed", "status", resp.StatusCode)
+		return fmt.Errorf("HTTP request failed with status %d", resp.StatusCode)
+	}
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
