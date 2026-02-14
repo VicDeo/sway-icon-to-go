@@ -5,6 +5,7 @@ import (
 )
 
 const (
+	// 30 different applications is a reasonable default for the cache capacity.
 	InitialCacheCapacity = 30
 )
 

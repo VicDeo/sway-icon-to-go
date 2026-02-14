@@ -17,18 +17,13 @@ type AppToIconMap map[string]string
 // Config is a struct that contains the config for the app.
 type Config struct {
 	AppToIcon AppToIconMap
-	Length    int
-	Delimiter string
-	Uniq      bool
+	Format    *Format
 }
 
 const (
-	DefaultLength    = 12
-	DefaultDelimiter = "|"
-	DefaultUniq      = true
-	NoMatch          = "_no_match"
-	iconFileName     = "app-icons.yaml"
-	faFileName       = "fa-icons.yaml"
+	NoMatch      = "_no_match"
+	iconFileName = "app-icons.yaml"
+	faFileName   = "fa-icons.yaml"
 )
 
 var (
@@ -55,9 +50,8 @@ var (
 		},
 		"terminal": []string{
 			"x-terminal-emulator",
-			"XTerm",
+			"xterm",
 			"konsole",
-			"Konsole",
 		},
 		"shield-alt": []string{
 			"keepassxc",
@@ -95,7 +89,11 @@ var (
 )
 
 // NewConfig creates a new config for the app.
-func NewConfig(delim string, uniq bool, length int, configPath string) (*Config, error) {
+func NewConfig(configPath string, format *Format) (*Config, error) {
+	if format == nil {
+		format = DefaultFormat()
+		slog.Warn("No format provided, using default format")
+	}
 	iconConfig := defaultIconConfig
 	faIcons := defaultFaIcons
 
@@ -151,9 +149,7 @@ func NewConfig(delim string, uniq bool, length int, configPath string) (*Config,
 
 	currentConfig := &Config{
 		AppToIcon: iconByAppName,
-		Length:    length,
-		Delimiter: delim,
-		Uniq:      uniq,
+		Format:    format,
 	}
 	return currentConfig, nil
 }

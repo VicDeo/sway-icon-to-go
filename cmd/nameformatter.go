@@ -8,29 +8,29 @@ import (
 
 // NameFormatter is a struct that formats the workspace name according to the config.
 type NameFormatter struct {
-	config *config.Config
+	format *config.Format
 }
 
-// NewNameFormatter creates a new ConfigNameFormatter with the given config.
-func NewNameFormatter(config *config.Config) *NameFormatter {
-	return &NameFormatter{config: config}
+// NewNameFormatter creates a new NameFormatter with the given config.
+func NewNameFormatter(format *config.Format) *NameFormatter {
+	return &NameFormatter{format: format}
 }
 
 // Format the workspace name according to the config.
-func (c NameFormatter) Format(workspaceNumber int64, appIcons []string) string {
+func (nf *NameFormatter) Format(workspaceNumber int64, appIcons []string) string {
 	if appIcons == nil {
 		return ""
 	}
 
-	if c.config.Uniq {
+	if nf.format.Uniq {
 		appIcons = unique(appIcons)
 	}
 
 	trimmedAppIcons := make([]string, 0)
-	if c.config.Length > 0 {
+	if nf.format.Length > 0 {
 		// Trim app icons to the length specified in the config.
 		for _, appIcon := range appIcons {
-			capLength := min(len(appIcon), c.config.Length)
+			capLength := min(len(appIcon), nf.format.Length)
 			trimmedAppIcons = append(trimmedAppIcons, appIcon[:capLength])
 		}
 	} else {
@@ -39,7 +39,7 @@ func (c NameFormatter) Format(workspaceNumber int64, appIcons []string) string {
 	return fmt.Sprintf(
 		"%d: %s",
 		workspaceNumber,
-		strings.Join(trimmedAppIcons, c.config.Delimiter),
+		strings.Join(trimmedAppIcons, nf.format.Delimiter),
 	)
 }
 

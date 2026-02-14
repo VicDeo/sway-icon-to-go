@@ -76,15 +76,19 @@ func (s *swayClient) RenameWorkspaces(workspaces Workspaces, nameFormatter NameF
 	return nil
 }
 
-// traverseTree traverses the tree and populates the workspaces map
+// traverseTree traverses the tree and populates the initial workspaces map.
 func (s *swayClient) traverseTree(node *sc.Node, workspaces Workspaces) {
 	switch node.Type {
 	case sc.NodeWorkspace:
 		for _, child := range node.Nodes {
-			workspace := NewWorkspace(node.Name, s.workspaceNumByName[node.Name])
-			workspaces[workspace.Number] = workspace
+			if workspaceNum, ok := s.workspaceNumByName[node.Name]; ok {
+				workspace := NewWorkspace(node.Name, workspaceNum)
+				workspaces[workspace.Number] = workspace
 
-			traverseWorkspace(child, workspace.Number, workspaces)
+				traverseWorkspace(child, workspace.Number, workspaces)
+			} else {
+				slog.Warn("Workspace not found in workspaceNumByName", "name", node.Name)
+			}
 		}
 	default:
 		for _, child := range node.Nodes {

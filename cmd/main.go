@@ -25,12 +25,12 @@ const (
 )
 
 var (
-	// WindowChangeTypes is a list of window event changes that we are interested in
-	WindowChangeTypes = [...]swayClient.WindowEventChange{
-		swayClient.WindowMove,
-		swayClient.WindowNew,
-		swayClient.WindowTitle,
-		swayClient.WindowClose,
+	// windowChangeTypes is a map of window event changes that we are interested in.
+	windowChangeTypes = map[swayClient.WindowEventChange]bool{
+		swayClient.WindowMove:  true,
+		swayClient.WindowNew:   true,
+		swayClient.WindowTitle: true,
+		swayClient.WindowClose: true,
 	}
 )
 
@@ -40,9 +40,7 @@ type handler struct {
 	nameFormatter *NameFormatter
 	iconProvider  *IconProvider
 	config        *config.Config
-	delim         string
-	uniq          bool
-	length        int
+	format        *config.Format
 	configPath    string
 }
 
@@ -51,13 +49,13 @@ func (h *handler) reloadConfig() error {
 	slog.Info("Reloading configuration...")
 
 	// Reload configuration
-	newConfig, err := config.NewConfig(h.delim, h.uniq, h.length, h.configPath)
+	newConfig, err := config.NewConfig(h.configPath, h.format)
 	if err != nil {
 		return fmt.Errorf("failed to reload config: %w", err)
 	}
 
 	h.config = newConfig
-	h.nameFormatter = NewNameFormatter(newConfig)
+	h.nameFormatter = NewNameFormatter(h.format)
 	h.iconProvider.ClearCache()
 	slog.Info("Configuration reloaded successfully")
 	return nil
@@ -65,24 +63,29 @@ func (h *handler) reloadConfig() error {
 
 // Window event handler
 func (h handler) Window(ctx context.Context, event swayClient.WindowEvent) {
-	for _, b := range WindowChangeTypes {
-		if b == event.Change {
-			if err := sway.ProcessWorkspaces(ctx, h.iconProvider, h.nameFormatter); err != nil {
-				slog.Error("Error while processing the event", "error", err)
-			}
-		}
+	if _, ok := windowChangeTypes[event.Change]; !ok {
+		return
+	}
+	if err := sway.ProcessWorkspaces(ctx, h.iconProvider, h.nameFormatter); err != nil {
+		slog.Error("Error while processing the event", "error", err)
 	}
 }
 
 func main() {
+	// Set up the logger
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
 	slog.SetDefault(logger)
 
-	uniq := flag.Bool("u", config.DefaultUniq, "display only unique icons. True by default")
-	length := flag.Int("l", config.DefaultLength, "trim app names to this length. 12 by default")
-	delim := flag.String("d", config.DefaultDelimiter, "app separator. \"|\" by default")
+	// Set up the flags
+	format := config.DefaultFormat()
+	flag.BoolVar(&format.Uniq, "u", format.Uniq, "display only unique icons. True by default")
+	flag.IntVar(&format.Length, "l", format.Length, "trim app names to this length. 12 by default")
+	flag.StringVar(&format.Delimiter, "d", format.Delimiter, "app separator. \"|\" by default")
+
 	configPath := flag.String("c", "", "path to the app-icons.yaml config file")
 	flag.Parse()
+
+	// Validate the arguments
 	if flag.NArg() > 0 {
 		if flag.Arg(0) == "awesome" {
 			fonts, err := service.FindFonts()
@@ -103,14 +106,25 @@ func main() {
 			return
 		}
 	}
-	appConfig, configErr := config.NewConfig(*delim, *uniq, *length, *configPath)
+	// Get the configuration
+	appConfig, configErr := config.NewConfig(*configPath, format)
 	if configErr != nil {
 		slog.Error("Error while getting config", "error", configErr)
 		os.Exit(1)
 	}
-	nameFormatter := NewNameFormatter(appConfig)
+	// Run the application
+	run(appConfig, format, configPath)
+}
+
+// run runs the application.
+func run(appConfig *config.Config, format *config.Format, configPath *string) {
+	nameFormatter := NewNameFormatter(format)
+
+	// Set up the pid to name resolver
 	resolver := proc.LinuxResolver{ProcPath: procPath}
 	processManager := proc.NewProcessManager(&resolver)
+
+	// Set up the icon provider
 	iconCache := cache.NewCache()
 	iconProvider := NewIconProvider(processManager, appConfig, iconCache)
 
@@ -119,9 +133,7 @@ func main() {
 		nameFormatter: nameFormatter,
 		iconProvider:  iconProvider,
 		config:        appConfig,
-		delim:         *delim,
-		uniq:          *uniq,
-		length:        *length,
+		format:        format,
 		configPath:    *configPath,
 	}
 
@@ -134,13 +146,13 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	go func() {
+	go func(cancel context.CancelFunc) {
 		err := swayClient.Subscribe(ctx, h, swayClient.EventTypeWindow)
 		if err != nil {
 			slog.Error("failed to connect to sway", "error", err)
-			os.Exit(1)
+			cancel()
 		}
-	}()
+	}(cancel)
 
 	// Wait for events or signals
 	for {
@@ -150,7 +162,6 @@ func main() {
 		case sig := <-sigChan:
 			slog.Info("Received signal", "signal", sig)
 			if sig == syscall.SIGHUP {
-				slog.Info("Reloading configuration...")
 				if err := h.reloadConfig(); err != nil {
 					slog.Warn("Failed to reload configuration", "error", err)
 				}
@@ -159,7 +170,7 @@ func main() {
 	}
 }
 
-// Print the help message
+// help prints the help message.
 func help() {
 	fmt.Println(`usage: sway-icon-to-go [-u] [-l LENGTH] [-d DELIMITER] [-c CONFIG_PATH] [help|awesome|parse]
   awesome    check if Font Awesome is available on your system (via fc-list)

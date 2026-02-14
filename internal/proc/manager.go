@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	// Set the cache TTL to 15 minutes.
 	CacheTTL = 15 * time.Minute
 )
 
