@@ -87,7 +87,8 @@ func main() {
 
 	// Validate the arguments
 	if flag.NArg() > 0 {
-		if flag.Arg(0) == "awesome" {
+		switch flag.Arg(0) {
+		case "awesome":
 			fonts, err := service.FindFonts()
 			if err != nil {
 				slog.Error("Error while finding fonts", "error", err)
@@ -95,10 +96,10 @@ func main() {
 			}
 			fmt.Println(fonts)
 			return
-		} else if flag.Arg(0) == "help" {
+		case "help":
 			help()
 			return
-		} else if flag.Arg(0) == "parse" {
+		case "parse":
 			if err := service.Dump(fontAwesomeStylesUri); err != nil {
 				slog.Error("Error while parsing Font Awesome CSS file", "error", err)
 				os.Exit(1)
