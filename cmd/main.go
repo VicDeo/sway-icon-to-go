@@ -72,18 +72,23 @@ func (h handler) Window(ctx context.Context, event swayClient.WindowEvent) {
 }
 
 func main() {
+	verbose := false
 	// Set up the logger
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
-	slog.SetDefault(logger)
+	setupLogger(verbose)
 
 	// Set up the flags
 	format := config.DefaultFormat()
 	flag.BoolVar(&format.Uniq, "u", format.Uniq, "display only unique icons. True by default")
 	flag.IntVar(&format.Length, "l", format.Length, "trim app names to this length. 12 by default")
 	flag.StringVar(&format.Delimiter, "d", format.Delimiter, "app separator. \"|\" by default")
+	flag.BoolVar(&verbose, "v", false, "show verbose output. False by default")
 
+	// Set up the config path
 	configPath := flag.String("c", "", "path to the app-icons.yaml config file")
 	flag.Parse()
+
+	// Adjust the log level according to the verbose flag
+	setupLogger(verbose)
 
 	// Validate the arguments
 	if flag.NArg() > 0 {
@@ -115,6 +120,18 @@ func main() {
 	}
 	// Run the application
 	run(appConfig, format, configPath)
+}
+
+func setupLogger(verbose bool) *slog.Logger {
+	logLevel := new(slog.LevelVar)
+	if verbose {
+		logLevel.Set(slog.LevelDebug)
+	}
+	// Set up the logger
+	h := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel, AddSource: verbose})
+	logger := slog.New(h)
+	slog.SetDefault(logger)
+	return logger
 }
 
 // run runs the application.
