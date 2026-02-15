@@ -7,6 +7,12 @@ import (
 	sc "github.com/joshuarubin/go-sway"
 )
 
+const (
+	// Scratchpad workspace name is "__i3_scratch"
+	// See https://pkg.go.dev/github.com/joshuarubin/go-sway@v1.2.0#Node for more details
+	ScratchpadWorkspaceName = "__i3_scratch"
+)
+
 // SwayClient is an interface that provides a way to interact with the Sway window manager
 type SwayClient interface {
 	CollectWorkspaces() (Workspaces, error)
@@ -70,7 +76,7 @@ func (s *swayClient) RenameWorkspaces(workspaces Workspaces, nameFormatter NameF
 	}
 	// Send all commands at once as there could be a mess otherwise
 	if _, err := s.client.RunCommand(s.ctx, renameCommand); err != nil {
-		slog.Warn("Error while renaming workspaces", "error", err)
+		slog.Error("Error while renaming workspaces", "error", err)
 		return err
 	}
 	return nil
@@ -80,15 +86,22 @@ func (s *swayClient) RenameWorkspaces(workspaces Workspaces, nameFormatter NameF
 func (s *swayClient) traverseTree(node *sc.Node, workspaces Workspaces) {
 	switch node.Type {
 	case sc.NodeWorkspace:
-		for _, child := range node.Nodes {
-			if workspaceNum, ok := s.workspaceNumByName[node.Name]; ok {
-				workspace := NewWorkspace(node.Name, workspaceNum)
-				workspaces[workspace.Number] = workspace
+		if node.Name == ScratchpadWorkspaceName {
+			slog.Debug("Ignoring scratchpad workspace", "name", node.Name)
+			return
+		}
 
-				traverseWorkspace(child, workspace.Number, workspaces)
-			} else {
-				slog.Warn("Workspace not found in workspaceNumByName", "name", node.Name)
-			}
+		workspaceNum, ok := s.workspaceNumByName[node.Name]
+		if !ok {
+			// Workspace not found in workspaceNumByName, so we skip it
+			slog.Warn("Workspace not found in workspaceNumByName", "name", node.Name)
+			return
+		}
+
+		workspace := NewWorkspace(node.Name, workspaceNum)
+		workspaces[workspace.Number] = workspace
+		for _, child := range node.Nodes {
+			traverseWorkspace(child, workspace.Number, workspaces)
 		}
 	default:
 		for _, child := range node.Nodes {

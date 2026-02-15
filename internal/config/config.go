@@ -123,7 +123,7 @@ func NewConfig(configPath string, format *Format) (*Config, error) {
 				for k, v := range faIcons {
 					faIcons[k], err = strconv.Unquote(`"` + v + `"`)
 					if err != nil {
-						slog.Warn("Error while unquoting icon", "icon", v, "error", err)
+						slog.Error("Error while unquoting icon", "icon", v, "error", err)
 					}
 				}
 			}
@@ -158,7 +158,7 @@ func NewConfig(configPath string, format *Format) (*Config, error) {
 func getConfigFilePath(fileName string) string {
 	usr, err := user.Current()
 	if err != nil {
-		slog.Warn("Error while getting current user", "error", err)
+		slog.Error("Error while getting current user", "error", err)
 		return ""
 	}
 	home := usr.HomeDir

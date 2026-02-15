@@ -13,7 +13,7 @@ func FindFonts() (string, error) {
 	cmd := exec.Command("fc-list")
 	cmdOutput, err := cmd.Output()
 	if err != nil {
-		slog.Warn("Error executing fc-list", "error", err)
+		slog.Error("Error executing fc-list", "error", err)
 		return "", err
 	}
 

@@ -50,7 +50,7 @@ func (pm *ProcessManager) GetProcessName(pid *uint32) (string, bool) {
 
 	name, err := pm.resolver.Resolve(*pid)
 	if err != nil {
-		slog.Warn("error while getting executable name", "error", err)
+		slog.Error("error while getting executable name", "error", err)
 		return "", false
 	}
 

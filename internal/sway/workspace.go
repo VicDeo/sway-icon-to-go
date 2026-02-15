@@ -63,16 +63,16 @@ func escapeName(name string) string {
 type Workspaces map[int64]*Workspace
 
 // ToRenameCommand produces Sway rename command for all workspaces
-func (ww *Workspaces) ToRenameCommand(nf NameFormatter) string {
+func (ww Workspaces) ToRenameCommand(nf NameFormatter) string {
 	var commands []string
 
-	for _, workspace := range *ww {
+	for _, workspace := range ww {
 		name := workspace.ToRenameCommand(nf)
 		if name != "" {
 			commands = append(commands, name)
 		}
 	}
 	command := strings.Join(commands, ";")
-	slog.Info("Command is ready to be executed", "command", command)
+	slog.Debug("Command is ready to be executed", "command", command)
 	return command
 }

@@ -181,7 +181,7 @@ func run(appConfig *config.Config, format *config.Format, configPath *string) {
 			slog.Info("Received signal", "signal", sig)
 			if sig == syscall.SIGHUP {
 				if err := h.reloadConfig(); err != nil {
-					slog.Warn("Failed to reload configuration", "error", err)
+					slog.Error("Failed to reload configuration", "error", err)
 				}
 			}
 		}
@@ -198,6 +198,7 @@ func help() {
   -u         display only unique icons. True by default
   -l         trim app names to this length. 12 by default
   -d         app delimiter. "|" by default
+  -v         show verbose output. False by default
 
 Configuration can be reloaded at runtime by sending SIGHUP signal:
   kill -HUP <pid>
