@@ -1,0 +1,30 @@
+# sway-icon-to-go systemd user service
+#
+# Install:
+#   mkdir -p ~/.config/systemd/user
+#   cp configs/sway-icon-to-go.service ~/.config/systemd/user/
+#   # Edit ExecStart if binary is elsewhere (e.g. /usr/bin/sway-icon-to-go)
+#
+# Enable (start on login):
+#   systemctl --user enable sway-icon-to-go.service
+#
+# Start/stop:
+#   systemctl --user start sway-icon-to-go.service
+#   systemctl --user stop sway-icon-to-go.service
+
+[Unit]
+Description=sway-icon-to-go - Sway workspace icon renamer
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/sway-icon-to-go -c %h/.config/sway/app-icons.yaml
+Restart=on-failure
+RestartSec=3
+
+# Required for Wayland/Sway
+Environment=XDG_RUNTIME_DIR=%t
+
+[Install]
+WantedBy=graphical-session.target

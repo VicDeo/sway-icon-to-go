@@ -17,6 +17,13 @@ A default `fa-icons.yaml` can be produced by executing `sway-icon-to-go parse > 
 3. Just place the executable file anywhere and add this line to your sway config:
 `exec sway-icon-to-go`
 
+   **Alternatively**, run as a user-level systemd service:
+   ```
+   make install-service   # install, enable and start
+   make reload-service    # rebuild and restart
+   make uninstall-service # remove
+   ```
+
 4. Hot reload icons file without restarting the application:
 `pkill --signal HUP sway-icon-to-go` 
 
