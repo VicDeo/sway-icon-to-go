@@ -1,28 +1,28 @@
-package main
+package display
 
 import (
 	"log/slog"
 	"regexp"
 	"strings"
-	"sway-icon-to-go/internal/cache"
-	"sway-icon-to-go/internal/config"
-	"sway-icon-to-go/internal/proc"
 	"sway-icon-to-go/internal/sway"
 	"sync"
 )
 
+// AppToIconMap is a map of application names to icons.
+type AppToIconMap map[string]string
+
 // IconProvider is a struct that provides the icon for the given pid and node name.
 type IconProvider struct {
-	processManager *proc.ProcessManager
-	config         *config.Config
-	cache          *cache.Cache
+	processManager ProcessManager
+	iconMap        AppToIconMap
+	cache          IconCache
 }
 
 // NewIconProvider creates a new IconProvider instance.
-func NewIconProvider(processManager *proc.ProcessManager, config *config.Config, cache *cache.Cache) *IconProvider {
+func NewIconProvider(processManager ProcessManager, iconMap AppToIconMap, cache IconCache) *IconProvider {
 	return &IconProvider{
 		processManager: processManager,
-		config:         config,
+		iconMap:        iconMap,
 		cache:          cache,
 	}
 }
@@ -79,14 +79,14 @@ func (i *IconProvider) iconFor(name string) (string, bool) {
 		return icon, true
 	}
 
-	icon, ok := i.config.AppToIcon[name]
+	icon, ok := i.iconMap[name]
 	if ok {
 		i.cache.SetIcon(name, icon)
 		return icon, ok
 	}
 
 	// try treat app names in config as a regex and match them against the app name
-	for appName, icon := range i.config.AppToIcon {
+	for appName, icon := range i.iconMap {
 		if ok, err := regexp.MatchString(appName, name); err == nil && ok {
 			i.cache.SetIcon(name, icon)
 			return icon, true

@@ -1,18 +1,29 @@
-package main
+package display
 
 import (
 	"fmt"
 	"strings"
-	"sway-icon-to-go/internal/config"
 )
+
+// FormatParams is a struct that contains the format params for the workspace name.
+type FormatParams struct {
+	Length    int
+	Delimiter string
+	Uniq      bool
+}
 
 // NameFormatter is a struct that formats the workspace name according to the config.
 type NameFormatter struct {
-	format *config.Format
+	format *FormatParams
 }
 
 // NewNameFormatter creates a new NameFormatter with the given config.
-func NewNameFormatter(format *config.Format) *NameFormatter {
+func NewNameFormatter(delimiter string, length int, uniq bool) *NameFormatter {
+	format := &FormatParams{
+		Delimiter: delimiter,
+		Length:    length,
+		Uniq:      uniq,
+	}
 	return &NameFormatter{format: format}
 }
 

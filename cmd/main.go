@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"sway-icon-to-go/internal/cache"
 	"sway-icon-to-go/internal/config"
+	"sway-icon-to-go/internal/display"
 	"sway-icon-to-go/internal/proc"
 	"sway-icon-to-go/internal/service"
 	"sway-icon-to-go/internal/sway"
@@ -37,8 +38,8 @@ var (
 // handler is a struct that handles the sway events
 type handler struct {
 	swayClient.EventHandler
-	nameFormatter *NameFormatter
-	iconProvider  *IconProvider
+	nameFormatter *display.NameFormatter
+	iconProvider  *display.IconProvider
 	config        *config.Config
 	format        *config.Format
 	configPath    string
@@ -55,7 +56,7 @@ func (h *handler) reloadConfig() error {
 	}
 
 	h.config = newConfig
-	h.nameFormatter = NewNameFormatter(h.format)
+	h.nameFormatter = display.NewNameFormatter(h.format.Delimiter, h.format.Length, h.format.Uniq)
 	h.iconProvider.ClearCache()
 	slog.Info("Configuration reloaded successfully")
 	return nil
@@ -136,7 +137,7 @@ func setupLogger(verbose bool) *slog.Logger {
 
 // run runs the application.
 func run(appConfig *config.Config, format *config.Format, configPath *string) {
-	nameFormatter := NewNameFormatter(format)
+	nameFormatter := display.NewNameFormatter(format.Delimiter, format.Length, format.Uniq)
 
 	// Set up the pid to name resolver
 	resolver := proc.LinuxResolver{ProcPath: procPath}
@@ -144,7 +145,7 @@ func run(appConfig *config.Config, format *config.Format, configPath *string) {
 
 	// Set up the icon provider
 	iconCache := cache.NewCache()
-	iconProvider := NewIconProvider(processManager, appConfig, iconCache)
+	iconProvider := display.NewIconProvider(processManager, display.AppToIconMap(appConfig.AppToIcon), iconCache)
 
 	h := handler{
 		EventHandler:  swayClient.NoOpEventHandler(),
