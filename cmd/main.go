@@ -165,7 +165,7 @@ func run(appConfig *config.Config, format *config.Format, configPath *string) {
 	defer cancel()
 
 	go func(cancel context.CancelFunc) {
-		err := swayClient.Subscribe(ctx, h, swayClient.EventTypeWindow)
+		err := swayClient.Subscribe(ctx, &h, swayClient.EventTypeWindow)
 		if err != nil {
 			slog.Error("failed to connect to sway", "error", err)
 			cancel()
