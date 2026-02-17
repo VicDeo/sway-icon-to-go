@@ -9,18 +9,26 @@
 
 firefox:
   - firefox
+  - navigator
 chrome:
   - chromium-browser
   - chrome
   - google-chrome
+sticky-note:
+  - cherrytree
 terminal:
   - x-terminal-emulator
   - xterm
   - konsole
 shield-alt:
   - keepassxc
+  - 1password
 image:
   - gwenview
+solar-panel:
+  - podman-desktop
+code-compare:
+  - kdiff3
 cog:
   - yast2
 envelope:
@@ -29,7 +37,11 @@ edit:
   - jetbrains-idea-ce
   - code
   - cursor
+paperclip:
   - libreoffice
+  - soffice.bin
+table:
+  - libreoffice calc
 folder-open:
   - nautilus
   - .*krusader.*
@@ -37,9 +49,14 @@ music:
   - clementine
 play:
   - vlc
+slack:
+  - slack
+discord:
+  - discord
+telegram:
+  - zoom
+  - telegram
 comment:
   - signal
-  - discord
-  - telegram
 question-circle:
   - _no_match
