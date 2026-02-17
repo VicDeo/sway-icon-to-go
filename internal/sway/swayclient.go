@@ -101,7 +101,7 @@ func (s *swayClient) traverseTree(node *sc.Node, workspaces Workspaces) {
 		workspace := NewWorkspace(node.Name, workspaceNum)
 		workspaces[workspace.Number] = workspace
 		for _, child := range node.Nodes {
-			traverseWorkspace(child, workspace.Number, workspaces)
+			s.traverseWorkspace(child, workspace.Number, workspaces)
 		}
 	default:
 		for _, child := range node.Nodes {
@@ -111,7 +111,7 @@ func (s *swayClient) traverseTree(node *sc.Node, workspaces Workspaces) {
 }
 
 // traverseWorkspace traverses the workspace and populates the workspaces map
-func traverseWorkspace(node *sc.Node, workspaceNumber int64, workspaces Workspaces) {
+func (s *swayClient) traverseWorkspace(node *sc.Node, workspaceNumber int64, workspaces Workspaces) {
 	if node.Type == sc.NodeCon || node.Type == sc.NodeFloatingCon {
 		// Ignore ghost nodes that we can't resolve anyway
 		if !(node.PID == nil && node.Name == "") {
@@ -123,10 +123,10 @@ func traverseWorkspace(node *sc.Node, workspaceNumber int64, workspaces Workspac
 		}
 	}
 	for _, child := range node.Nodes {
-		traverseWorkspace(child, workspaceNumber, workspaces)
+		s.traverseWorkspace(child, workspaceNumber, workspaces)
 	}
 
 	for _, child := range node.FloatingNodes {
-		traverseWorkspace(child, workspaceNumber, workspaces)
+		s.traverseWorkspace(child, workspaceNumber, workspaces)
 	}
 }
