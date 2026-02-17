@@ -13,16 +13,16 @@ const (
 	ScratchpadWorkspaceName = "__i3_scratch"
 )
 
-// SwayClient is an interface that provides a way to interact with the Sway window manager
+// SwayClient is an interface that provides a way to interact with the Sway window manager.
 type SwayClient interface {
 	CollectWorkspaces() (Workspaces, error)
 	RenameWorkspaces(workspaces Workspaces, nameFormatter NameFormatter) error
 }
 
-// WorkspaceNumByName is a map of workspace name to workspace number
+// WorkspaceNumByName is a map of workspace name to workspace number.
 type WorkspaceNumByName map[string]int64
 
-// NewSwayClient creates a new SwayClient instance
+// NewSwayClient creates a new SwayClient instance.
 func NewSwayClient(ctx context.Context) (SwayClient, error) {
 	client, err := sc.New(ctx)
 	if err != nil {
@@ -47,7 +47,7 @@ func NewSwayClient(ctx context.Context) (SwayClient, error) {
 	return s, nil
 }
 
-// swayClient is a struct that implements the SwayClient interface
+// swayClient is a struct that implements the SwayClient interface.
 type swayClient struct {
 	ctx    context.Context
 	client sc.Client
@@ -57,6 +57,7 @@ type swayClient struct {
 	workspaceNumByName WorkspaceNumByName
 }
 
+// CollectWorkspaces collects the workspaces from the Sway window manager.
 func (s *swayClient) CollectWorkspaces() (Workspaces, error) {
 	workspaces := make(Workspaces, 0)
 	tree, err := s.client.GetTree(s.ctx)
@@ -68,6 +69,7 @@ func (s *swayClient) CollectWorkspaces() (Workspaces, error) {
 	return workspaces, nil
 }
 
+// RenameWorkspaces renames the workspaces.
 func (s *swayClient) RenameWorkspaces(workspaces Workspaces, nameFormatter NameFormatter) error {
 	renameCommand := workspaces.ToRenameCommand(nameFormatter)
 	if renameCommand == "" {
@@ -110,7 +112,7 @@ func (s *swayClient) traverseTree(node *sc.Node, workspaces Workspaces) {
 	}
 }
 
-// traverseWorkspace traverses the workspace and populates the workspaces map
+// traverseWorkspace traverses the workspace and populates the workspaces map.
 func (s *swayClient) traverseWorkspace(node *sc.Node, workspaceNumber int64, workspaces Workspaces) {
 	if node.Type == sc.NodeCon || node.Type == sc.NodeFloatingCon {
 		// Ignore ghost nodes that we can't resolve anyway

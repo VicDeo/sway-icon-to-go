@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// Workspace is a struct that represents a workspace
+// Workspace is a struct that represents a workspace.
 type Workspace struct {
 	Name     string
 	Number   int64
@@ -14,12 +14,13 @@ type Workspace struct {
 	AppIcons []string
 }
 
+// WindowInfo is a struct that represents a window with its PID and title.
 type WindowInfo struct {
 	PID   *uint32
 	Title string
 }
 
-// NewWorkspace creates a new workspace
+// NewWorkspace creates a new workspace.
 func NewWorkspace(name string, number int64) *Workspace {
 	return &Workspace{
 		Name:     name,
@@ -29,17 +30,17 @@ func NewWorkspace(name string, number int64) *Workspace {
 	}
 }
 
-// AddAppIcon adds an app icon to the workspace
+// AddAppIcon adds an app icon to the workspace.
 func (w *Workspace) AddAppIcon(appIcon string) {
 	w.AppIcons = append(w.AppIcons, appIcon)
 }
 
-// AddWindow adds a window to the workspace
+// AddWindow adds a window to the workspace.
 func (w *Workspace) AddWindow(window WindowInfo) {
 	w.Windows = append(w.Windows, window)
 }
 
-// ToRenameCommand produces Sway rename command for the workspace
+// ToRenameCommand produces Sway rename command for the workspace.
 func (w *Workspace) ToRenameCommand(nf NameFormatter) string {
 	newName := nf.Format(w.Number, w.AppIcons)
 	// Do not rename if nothing has been changed
@@ -54,15 +55,15 @@ func (w *Workspace) ToRenameCommand(nf NameFormatter) string {
 	)
 }
 
-// escapeName escapes the name for the sway command
+// escapeName escapes the name for the sway command.
 func escapeName(name string) string {
 	return strings.ReplaceAll(name, "\"", "\\\"")
 }
 
-// Workspaces is a map of workspace number to workspace
+// Workspaces is a map of workspace number to workspace.
 type Workspaces map[int64]*Workspace
 
-// ToRenameCommand produces Sway rename command for all workspaces
+// ToRenameCommand produces Sway rename command for all workspaces.
 func (ww Workspaces) ToRenameCommand(nf NameFormatter) string {
 	var commands []string
 
