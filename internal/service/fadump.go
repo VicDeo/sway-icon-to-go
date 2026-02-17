@@ -6,12 +6,19 @@ import (
 	"log/slog"
 	"net/http"
 	"regexp"
+	"time"
 )
 
-// Get the icon names from the Font Awesome CSS file
+const (
+	timeout = 10 * time.Second
+)
+
+// Get the icon names from the Font Awesome CSS file.
 func Dump(fontAwesomeStylesUri string) error {
-	// 138Kb is expected so we do it this way
-	resp, err := http.Get(fontAwesomeStylesUri)
+	client := &http.Client{
+		Timeout: timeout,
+	}
+	resp, err := client.Get(fontAwesomeStylesUri)
 	if err != nil {
 		slog.Error("HTTP request failed", "error", err)
 		return err
