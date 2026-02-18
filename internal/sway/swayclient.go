@@ -3,6 +3,7 @@ package sway
 import (
 	"context"
 	"log/slog"
+	"sway-icon-to-go/internal/workspace"
 
 	sc "github.com/joshuarubin/go-sway"
 )
@@ -15,8 +16,8 @@ const (
 
 // SwayClient is an interface that provides a way to interact with the Sway window manager.
 type SwayClient interface {
-	CollectWorkspaces() (Workspaces, error)
-	RenameWorkspaces(workspaces Workspaces, nameFormatter NameFormatter) error
+	CollectWorkspaces() (workspace.Workspaces, error)
+	RenameWorkspaces(workspaces workspace.Workspaces, nameFormatter NameFormatter) error
 }
 
 // WorkspaceNumByName is a map of workspace name to workspace number.
@@ -57,9 +58,14 @@ type swayClient struct {
 	workspaceNumByName WorkspaceNumByName
 }
 
+// Subscribe subscribes to the Sway window manager events.
+func Subscribe(ctx context.Context, handler sc.EventHandler) error {
+	return sc.Subscribe(ctx, handler, sc.EventTypeWindow)
+}
+
 // CollectWorkspaces collects the workspaces from the Sway window manager.
-func (s *swayClient) CollectWorkspaces() (Workspaces, error) {
-	workspaces := make(Workspaces, 0)
+func (s *swayClient) CollectWorkspaces() (workspace.Workspaces, error) {
+	workspaces := make(workspace.Workspaces, 0)
 	tree, err := s.client.GetTree(s.ctx)
 	if err != nil {
 		return nil, err
@@ -70,7 +76,7 @@ func (s *swayClient) CollectWorkspaces() (Workspaces, error) {
 }
 
 // RenameWorkspaces renames the workspaces.
-func (s *swayClient) RenameWorkspaces(workspaces Workspaces, nameFormatter NameFormatter) error {
+func (s *swayClient) RenameWorkspaces(workspaces workspace.Workspaces, nameFormatter NameFormatter) error {
 	renameCommand := workspaces.ToRenameCommand(nameFormatter)
 	if renameCommand == "" {
 		// No changes to the workspaces, so we can return early
@@ -85,7 +91,7 @@ func (s *swayClient) RenameWorkspaces(workspaces Workspaces, nameFormatter NameF
 }
 
 // traverseTree traverses the tree and populates the initial workspaces map.
-func (s *swayClient) traverseTree(node *sc.Node, workspaces Workspaces) {
+func (s *swayClient) traverseTree(node *sc.Node, workspaces workspace.Workspaces) {
 	switch node.Type {
 	case sc.NodeWorkspace:
 		if node.Name == ScratchpadWorkspaceName {
@@ -100,7 +106,7 @@ func (s *swayClient) traverseTree(node *sc.Node, workspaces Workspaces) {
 			return
 		}
 
-		workspace := NewWorkspace(node.Name, workspaceNum)
+		workspace := workspace.NewWorkspace(node.Name, workspaceNum)
 		workspaces[workspace.Number] = workspace
 		for _, child := range node.Nodes {
 			s.traverseWorkspace(child, workspace.Number, workspaces)
@@ -113,11 +119,11 @@ func (s *swayClient) traverseTree(node *sc.Node, workspaces Workspaces) {
 }
 
 // traverseWorkspace traverses the workspace and populates the workspaces map.
-func (s *swayClient) traverseWorkspace(node *sc.Node, workspaceNumber int64, workspaces Workspaces) {
+func (s *swayClient) traverseWorkspace(node *sc.Node, workspaceNumber int64, workspaces workspace.Workspaces) {
 	if node.Type == sc.NodeCon || node.Type == sc.NodeFloatingCon {
 		// Ignore ghost nodes that we can't resolve anyway
 		if !(node.PID == nil && node.Name == "") {
-			windowInfo := WindowInfo{
+			windowInfo := workspace.WindowInfo{
 				PID:   node.PID,
 				Title: node.Name,
 			}

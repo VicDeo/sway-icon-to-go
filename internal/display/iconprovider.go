@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"regexp"
 	"strings"
-	"sway-icon-to-go/internal/sway"
+	"sway-icon-to-go/internal/workspace"
 	"sync"
 )
 
@@ -30,26 +30,27 @@ func NewIconProvider(processManager ProcessManager, iconMap AppToIconMap, cache 
 }
 
 // AddIcons adds icons to the all windows of all workspaces.
-func (i *IconProvider) AddIcons(workspaces sway.Workspaces) error {
+func (i *IconProvider) AddIcons(workspaces workspace.Workspaces) error {
 	var wg sync.WaitGroup
-	for _, workspace := range workspaces {
+	for _, ws := range workspaces {
 		wg.Add(1)
-		go func(workspace *sway.Workspace) {
+		go func(w *workspace.Workspace) {
 			defer wg.Done()
-			slog.Debug("Adding icons to workspace", "workspace", workspace.Name)
-			for _, window := range workspace.Windows {
+			slog.Debug("Adding icons to workspace", "workspace", w.String())
+			for _, window := range w.Windows {
 				icon, found := i.GetIcon(window.PID, window.Title)
 				if !found {
 					icon = window.Title
 				}
-				workspace.AddAppIcon(icon)
+				w.AddAppIcon(icon)
 			}
-		}(workspace)
+		}(ws)
 	}
 	wg.Wait()
 	return nil
 }
 
+// ClearCache clears the cache.
 func (i *IconProvider) ClearCache() {
 	i.cache.Clear()
 }

@@ -16,8 +16,6 @@ import (
 	"sway-icon-to-go/internal/service"
 	"sway-icon-to-go/internal/sway"
 	"syscall"
-
-	swayClient "github.com/joshuarubin/go-sway"
 )
 
 const (
@@ -25,57 +23,11 @@ const (
 	procPath             = "/proc"
 )
 
-var (
-	// windowChangeTypes is a map of window event changes that we are interested in.
-	windowChangeTypes = map[swayClient.WindowEventChange]bool{
-		swayClient.WindowMove:  true,
-		swayClient.WindowNew:   true,
-		swayClient.WindowTitle: true,
-		swayClient.WindowClose: true,
-	}
-)
-
-// handler is a struct that handles the sway events
-type handler struct {
-	swayClient.EventHandler
-	nameFormatter *display.NameFormatter
-	iconProvider  *display.IconProvider
-	config        *config.Config
-	format        *config.Format
-	configPath    string
-}
-
-// reloadConfig reloads the configuration from files
-func (h *handler) reloadConfig() error {
-	slog.Info("Reloading configuration...")
-
-	// Reload configuration
-	newConfig, err := config.NewConfig(h.configPath, h.format)
-	if err != nil {
-		return fmt.Errorf("failed to reload config: %w", err)
-	}
-
-	h.config = newConfig
-	h.nameFormatter = display.NewNameFormatter(h.format.Delimiter, h.format.Length, h.format.Uniq)
-	h.iconProvider.ClearCache()
-	slog.Info("Configuration reloaded successfully")
-	return nil
-}
-
-// Window event handler
-func (h handler) Window(ctx context.Context, event swayClient.WindowEvent) {
-	if _, ok := windowChangeTypes[event.Change]; !ok {
-		return
-	}
-	if err := sway.ProcessWorkspaces(ctx, h.iconProvider, h.nameFormatter); err != nil {
-		slog.Error("Error while processing the event", "error", err)
-	}
-}
-
 func main() {
-	verbose := false
-	// Set up the logger
-	setupLogger(verbose)
+	var verbose bool
+
+	// Until we have a real log level let our logger be non-verbose
+	setupLogger(false)
 
 	// Set up the flags
 	format := config.DefaultFormat()
@@ -147,15 +99,6 @@ func run(appConfig *config.Config, format *config.Format, configPath *string) {
 	iconCache := cache.NewCache()
 	iconProvider := display.NewIconProvider(processManager, display.AppToIconMap(appConfig.AppToIcon), iconCache)
 
-	h := handler{
-		EventHandler:  swayClient.NoOpEventHandler(),
-		nameFormatter: nameFormatter,
-		iconProvider:  iconProvider,
-		config:        appConfig,
-		format:        format,
-		configPath:    *configPath,
-	}
-
 	// Set up signal handling for SIGHUP (configuration reload)
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGHUP)
@@ -165,8 +108,10 @@ func run(appConfig *config.Config, format *config.Format, configPath *string) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	h := sway.NewHandler(nameFormatter, iconProvider, appConfig, format, *configPath)
+
 	go func(cancel context.CancelFunc) {
-		err := swayClient.Subscribe(ctx, &h, swayClient.EventTypeWindow)
+		err := sway.Subscribe(ctx, h)
 		if err != nil {
 			slog.Error("failed to connect to sway", "error", err)
 			cancel()
@@ -181,7 +126,7 @@ func run(appConfig *config.Config, format *config.Format, configPath *string) {
 		case sig := <-sigChan:
 			slog.Info("Received signal", "signal", sig)
 			if sig == syscall.SIGHUP {
-				if err := h.reloadConfig(); err != nil {
+				if err := h.ReloadConfig(); err != nil {
 					slog.Error("Failed to reload configuration", "error", err)
 				}
 			}

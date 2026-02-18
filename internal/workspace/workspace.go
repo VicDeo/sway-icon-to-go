@@ -1,4 +1,5 @@
-package sway
+// Package workspace provides a way to represent a workspace and workspace collection.
+package workspace
 
 import (
 	"fmt"
@@ -6,18 +7,23 @@ import (
 	"strings"
 )
 
-// Workspace is a struct that represents a workspace.
-type Workspace struct {
-	Name     string
-	Number   int64
-	Windows  []WindowInfo
-	AppIcons []string
+// NameFormatter is an interface that formats a workspace name.
+type NameFormatter interface {
+	Format(workspaceNumber int64, appIcons []string) string
 }
 
 // WindowInfo is a struct that represents a window with its PID and title.
 type WindowInfo struct {
 	PID   *uint32
 	Title string
+}
+
+// Workspace is a struct that represents a workspace.
+type Workspace struct {
+	Name     string
+	Number   int64
+	Windows  []WindowInfo
+	AppIcons []string
 }
 
 // NewWorkspace creates a new workspace.
@@ -28,6 +34,10 @@ func NewWorkspace(name string, number int64) *Workspace {
 		Windows:  make([]WindowInfo, 0, 10),
 		AppIcons: make([]string, 0, 10),
 	}
+}
+
+func (w *Workspace) String() string {
+	return w.Name
 }
 
 // AddAppIcon adds an app icon to the workspace.
@@ -62,6 +72,13 @@ func escapeName(name string) string {
 
 // Workspaces is a map of workspace number to workspace.
 type Workspaces map[int64]*Workspace
+
+// Range iterates over the workspaces and calls the given function.
+func (ww Workspaces) Range(fn func(*Workspace)) {
+	for _, w := range ww {
+		fn(w)
+	}
+}
 
 // ToRenameCommand produces Sway rename command for all workspaces.
 func (ww Workspaces) ToRenameCommand(nf NameFormatter) string {
