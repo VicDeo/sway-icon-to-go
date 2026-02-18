@@ -1,5 +1,5 @@
 // Package config provides a way to get the config for the app
-// including app name to icon mappings
+// including app name to icon mappings.
 
 package config
 

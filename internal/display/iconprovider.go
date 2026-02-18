@@ -1,3 +1,5 @@
+// Package display provides a way to display the applications icons on the workspaces.
+
 package display
 
 import (

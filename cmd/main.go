@@ -1,4 +1,4 @@
-// main package for the sway-icon-to-go app
+// Main package for the sway-icon-to-go app.
 
 package main
 

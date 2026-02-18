@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	// Scratchpad workspace name is "__i3_scratch"
-	// See https://pkg.go.dev/github.com/joshuarubin/go-sway@v1.2.0#Node for more details
+	// Scratchpad workspace name is "__i3_scratch".
+	// See https://pkg.go.dev/github.com/joshuarubin/go-sway@v1.2.0#Node for more details.
 	ScratchpadWorkspaceName = "__i3_scratch"
 )
 

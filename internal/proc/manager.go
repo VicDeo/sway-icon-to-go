@@ -1,3 +1,6 @@
+// Package proc provides a way to resolve the process name by pid.
+// It also provides an internal cache with TTL.
+
 package proc
 
 import (
@@ -11,19 +14,19 @@ const (
 	CacheTTL = 15 * time.Minute
 )
 
-// NameResolver resolves the name of the process executable
+// NameResolver resolves the name of the process executable.
 type NameResolver interface {
 	Resolve(pid uint32) (string, error)
 }
 
-// ProcessManager holds cache of filename by pid
+// ProcessManager holds cache of filename by pid.
 type ProcessManager struct {
 	mu       sync.Mutex
 	cache    map[uint32]CacheItem
 	resolver NameResolver
 }
 
-// NewProcessManager creates ProcessManager instance
+// NewProcessManager creates ProcessManager instance.
 func NewProcessManager(resolver NameResolver) *ProcessManager {
 	return &ProcessManager{
 		cache:    make(map[uint32]CacheItem),
@@ -31,6 +34,7 @@ func NewProcessManager(resolver NameResolver) *ProcessManager {
 	}
 }
 
+// CacheItem is a struct that contains the process name and the best before time.
 type CacheItem struct {
 	Name       string
 	BestBefore time.Time

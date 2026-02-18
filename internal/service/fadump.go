@@ -1,3 +1,6 @@
+// Package service provides a way to dump the Font Awesome icons
+// and check if Font Awesome is available on the system.
+
 package service
 
 import (

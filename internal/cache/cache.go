@@ -1,3 +1,5 @@
+// Package cache provides a cache for the icons.
+
 package cache
 
 import (
