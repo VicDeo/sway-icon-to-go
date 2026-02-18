@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-// FormatParams is a struct that contains the format params for the workspace name.
-type FormatParams struct {
+// Format is a struct that contains the format params for the workspace name.
+type Format struct {
 	Length    int
 	Delimiter string
 	Uniq      bool
@@ -14,12 +14,12 @@ type FormatParams struct {
 
 // NameFormatter is a struct that formats the workspace name according to the config.
 type NameFormatter struct {
-	format *FormatParams
+	format *Format
 }
 
 // NewNameFormatter creates a new NameFormatter with the given config.
 func NewNameFormatter(delimiter string, length int, uniq bool) *NameFormatter {
-	format := &FormatParams{
+	format := &Format{
 		Delimiter: delimiter,
 		Length:    length,
 		Uniq:      uniq,

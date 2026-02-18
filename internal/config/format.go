@@ -17,8 +17,3 @@ type Format struct {
 func DefaultFormat() *Format {
 	return &Format{Length: DefaultLength, Delimiter: DefaultDelimiter, Uniq: DefaultUniq}
 }
-
-// NewFormat creates a new Format instance.
-func NewFormat(length int, delimiter string, uniq bool) *Format {
-	return &Format{Length: length, Delimiter: delimiter, Uniq: uniq}
-}
