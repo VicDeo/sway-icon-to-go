@@ -6,7 +6,10 @@ SERVICE_FILE=configs/sway-icon-to-go.service
 
 .PHONY: build install install-service uninstall-service reload-service reload clean
 
-build:
+test:
+	go test ./...
+
+build: test
 	go build -o $(BINARY_NAME) ./cmd
 
 install: build

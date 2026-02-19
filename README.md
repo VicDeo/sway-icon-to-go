@@ -33,7 +33,7 @@ A default `fa-icons.yaml` can be produced by executing `sway-icon-to-go parse > 
 ```
   -c         path to the app-icons.yaml config file
   -u         display only unique icons. Default is True
-  -l         trim app names to this length. Non-negative. Default is 12
+  -l         trim app names to this length. -1 means no trim. Default is 12
   -d         app delimiter. Could be empty. Default is a pipe character "|".
   -v         show verbose (debug) output. Default is False
 ```

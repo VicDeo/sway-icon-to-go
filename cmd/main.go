@@ -43,8 +43,8 @@ func main() {
 	// Adjust the log level according to the verbose flag
 	setupLogger(verbose)
 
-	if format.Length < 0 {
-		slog.Error("Length can not be less than 0")
+	if format.Length < -1 {
+		slog.Error("Length can not be less than -1")
 		os.Exit(1)
 	}
 
