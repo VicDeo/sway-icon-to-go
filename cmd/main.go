@@ -58,10 +58,12 @@ func main() {
 			help()
 			return
 		case "parse":
-			if err := service.Dump(fontAwesomeStylesUri); err != nil {
+			dump, err := service.Dump(fontAwesomeStylesUri)
+			if err != nil {
 				slog.Error("Error while parsing Font Awesome CSS file", "error", err)
 				os.Exit(1)
 			}
+			fmt.Println(dump)
 			return
 		}
 	}
@@ -75,7 +77,7 @@ func main() {
 	run(appConfig, format, configPath)
 }
 
-func setupLogger(verbose bool) *slog.Logger {
+func setupLogger(verbose bool) {
 	logLevel := new(slog.LevelVar)
 	if verbose {
 		logLevel.Set(slog.LevelDebug)
@@ -84,7 +86,6 @@ func setupLogger(verbose bool) *slog.Logger {
 	h := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel, AddSource: verbose})
 	logger := slog.New(h)
 	slog.SetDefault(logger)
-	return logger
 }
 
 // run runs the application.
