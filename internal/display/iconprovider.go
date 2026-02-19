@@ -15,6 +15,7 @@ type AppToIconMap map[string]string
 
 // IconProvider is a struct that provides the icon for the given pid and node name.
 type IconProvider struct {
+	mu             sync.RWMutex
 	processManager ProcessManager
 	iconMap        AppToIconMap
 	cache          IconCache
@@ -27,6 +28,13 @@ func NewIconProvider(processManager ProcessManager, iconMap AppToIconMap, cache 
 		iconMap:        iconMap,
 		cache:          cache,
 	}
+}
+
+// SetIconMap sets the icon map.
+func (i *IconProvider) SetIconMap(iconMap AppToIconMap) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	i.iconMap = iconMap
 }
 
 // AddIcons adds icons to the all windows of all workspaces.
@@ -82,7 +90,9 @@ func (i *IconProvider) iconFor(name string) (string, bool) {
 		return icon, true
 	}
 
+	i.mu.RLock()
 	icon, ok := i.iconMap[name]
+	defer i.mu.RUnlock()
 	if ok {
 		i.cache.SetIcon(name, icon)
 		return icon, ok

@@ -42,9 +42,11 @@ uninstall-service:
 	systemctl --user daemon-reload
 	@echo "Done. Service uninstalled."
 
+
 # Rebuild, reinstall binary, and restart the user service
 reload-service: build
 	@echo "Reloading $(BINARY_NAME) service..."
+	systemctl --user stop sway-icon-to-go.service
 	cp $(BINARY_NAME) $(USER_BIN_DIR)/
 	systemctl --user restart sway-icon-to-go.service
 	@echo "Done. Service restarted with new binary."

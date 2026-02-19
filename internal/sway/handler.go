@@ -56,6 +56,7 @@ func (h *handler) ReloadConfig() error {
 	h.nameFormatter = display.NewNameFormatter(h.format.Delimiter, h.format.Length, h.format.Uniq)
 	h.config = newConfig
 	h.iconProvider.ClearCache()
+	h.iconProvider.SetIconMap(display.AppToIconMap(newConfig.AppToIcon))
 	slog.Info("Configuration reloaded successfully")
 	return nil
 }
