@@ -36,6 +36,7 @@ func NewWorkspace(name string, number int64) *Workspace {
 	}
 }
 
+// String returns the workspace name.
 func (w *Workspace) String() string {
 	return w.Name
 }
@@ -72,13 +73,6 @@ func escapeName(name string) string {
 
 // Workspaces is a map of workspace number to workspace.
 type Workspaces map[int64]*Workspace
-
-// Range iterates over the workspaces and calls the given function.
-func (ww Workspaces) Range(fn func(*Workspace)) {
-	for _, w := range ww {
-		fn(w)
-	}
-}
 
 // ToRenameCommand produces Sway rename command for all workspaces.
 func (ww Workspaces) ToRenameCommand(nf NameFormatter) string {
