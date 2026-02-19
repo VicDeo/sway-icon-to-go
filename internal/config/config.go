@@ -122,7 +122,7 @@ func NewConfig(configPath string, format *Format) (*Config, error) {
 				faIcons = *loadedFaIcons
 				for k, v := range faIcons {
 					var err error
-					// Hack: quote and unqote to get the unicode character from code
+					// Hack: quote and unquote to get the unicode character from code
 					faIcons[k], err = strconv.Unquote(`"` + v + `"`)
 					if err != nil {
 						slog.Error("Error while unquoting icon", "icon", v, "error", err)

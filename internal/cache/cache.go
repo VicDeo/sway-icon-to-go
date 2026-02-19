@@ -21,7 +21,6 @@ type Cache struct {
 func NewCache() *Cache {
 	return &Cache{
 		nameCache: make(map[string]string, InitialCacheCapacity),
-		muName:    sync.Mutex{},
 	}
 }
 

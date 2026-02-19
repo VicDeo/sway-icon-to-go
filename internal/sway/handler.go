@@ -2,7 +2,6 @@ package sway
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"sway-icon-to-go/internal/config"
 	"sway-icon-to-go/internal/display"
@@ -26,37 +25,27 @@ type handler struct {
 	nameFormatter NameFormatter
 	iconProvider  *display.IconProvider
 	config        *config.Config
-	format        *config.Format
-	configPath    string
 }
 
 // NewHandler creates a new handler instance.
-func NewHandler(nameFormatter NameFormatter, iconProvider *display.IconProvider, config *config.Config, format *config.Format, configPath string) *handler {
+func NewHandler(nameFormatter NameFormatter, iconProvider *display.IconProvider, config *config.Config) *handler {
 	h := &handler{
 		EventHandler:  sc.NoOpEventHandler(),
 		nameFormatter: nameFormatter,
 		iconProvider:  iconProvider,
 		config:        config,
-		format:        format,
-		configPath:    configPath,
 	}
 	return h
 }
 
 // ReloadConfig reloads the configuration from files
-func (h *handler) ReloadConfig() error {
+func (h *handler) ReloadConfig(newConfig *config.Config) error {
 	slog.Info("Reloading configuration...")
 
-	// Reload configuration
-	newConfig, err := config.NewConfig(h.configPath, h.format)
-	if err != nil {
-		return fmt.Errorf("failed to reload config: %w", err)
-	}
-
-	h.nameFormatter = display.NewNameFormatter(h.format.Delimiter, h.format.Length, h.format.Uniq)
 	h.config = newConfig
-	h.iconProvider.ClearCache()
+	h.nameFormatter = display.NewNameFormatter(h.config.Format)
 	h.iconProvider.SetIconMap(display.AppToIconMap(newConfig.AppToIcon))
+	h.iconProvider.ClearCache()
 	slog.Info("Configuration reloaded successfully")
 	return nil
 }

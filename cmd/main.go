@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	fontAwesomeStylesUri = "https://github.com/FortAwesome/Font-Awesome/raw/6.x/css/all.css"
-	procPath             = "/proc"
+	fontAwesomeCSSURL = "https://github.com/FortAwesome/Font-Awesome/raw/6.x/css/all.css"
+	procPath          = "/proc"
 )
 
 func main() {
@@ -63,7 +63,7 @@ func main() {
 			help()
 			return
 		case "parse":
-			dump, err := service.Dump(fontAwesomeStylesUri)
+			dump, err := service.Dump(fontAwesomeCSSURL)
 			if err != nil {
 				slog.Error("Error while parsing Font Awesome CSS file", "error", err)
 				os.Exit(1)
@@ -79,7 +79,7 @@ func main() {
 		os.Exit(1)
 	}
 	// Run the application
-	run(appConfig, format, configPath)
+	run(appConfig, configPath)
 }
 
 func setupLogger(verbose bool) {
@@ -94,8 +94,8 @@ func setupLogger(verbose bool) {
 }
 
 // run runs the application.
-func run(appConfig *config.Config, format *config.Format, configPath *string) {
-	nameFormatter := display.NewNameFormatter(format.Delimiter, format.Length, format.Uniq)
+func run(appConfig *config.Config, configPath *string) {
+	nameFormatter := display.NewNameFormatter(appConfig.Format)
 
 	// Set up the pid to name resolver
 	resolver := proc.LinuxResolver{ProcPath: procPath}
@@ -114,7 +114,7 @@ func run(appConfig *config.Config, format *config.Format, configPath *string) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	h := sway.NewHandler(nameFormatter, iconProvider, appConfig, format, *configPath)
+	h := sway.NewHandler(nameFormatter, iconProvider, appConfig)
 
 	go func(cancel context.CancelFunc) {
 		err := sway.Subscribe(ctx, h)
@@ -132,7 +132,13 @@ func run(appConfig *config.Config, format *config.Format, configPath *string) {
 		case sig := <-sigChan:
 			slog.Info("Received signal", "signal", sig)
 			if sig == syscall.SIGHUP {
-				if err := h.ReloadConfig(); err != nil {
+				newConfig, err := config.NewConfig(*configPath, appConfig.Format)
+				if err != nil {
+					slog.Error("Failed to reload configuration", "error", err)
+					continue
+				}
+
+				if err := h.ReloadConfig(newConfig); err != nil {
 					slog.Error("Failed to reload configuration", "error", err)
 				}
 			}

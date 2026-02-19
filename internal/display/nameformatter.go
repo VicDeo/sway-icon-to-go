@@ -3,27 +3,16 @@ package display
 import (
 	"fmt"
 	"strings"
+	"sway-icon-to-go/internal/config"
 )
-
-// Format is a struct that contains the format params for the workspace name.
-type Format struct {
-	Length    int
-	Delimiter string
-	Uniq      bool
-}
 
 // NameFormatter is a struct that formats the workspace name according to the config.
 type NameFormatter struct {
-	format *Format
+	format *config.Format
 }
 
 // NewNameFormatter creates a new NameFormatter with the given config.
-func NewNameFormatter(delimiter string, length int, uniq bool) *NameFormatter {
-	format := &Format{
-		Delimiter: delimiter,
-		Length:    length,
-		Uniq:      uniq,
-	}
+func NewNameFormatter(format *config.Format) *NameFormatter {
 	return &NameFormatter{format: format}
 }
 
@@ -37,7 +26,7 @@ func (nf *NameFormatter) Format(workspaceNumber int64, appIcons []string) string
 		appIcons = unique(appIcons)
 	}
 
-	trimmedAppIcons := make([]string, 0)
+	trimmedAppIcons := []string{}
 	if nf.format.Length > 0 {
 		// Trim app icons to the length specified in the config.
 		for _, appIcon := range appIcons {

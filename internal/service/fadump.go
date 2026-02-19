@@ -18,8 +18,8 @@ const (
 )
 
 // Get the icon names from the Font Awesome CSS file.
-func Dump(fontAwesomeStylesUri string) (string, error) {
-	data, err := downloadFontAwesomeStyles(fontAwesomeStylesUri)
+func Dump(fontAwesomeCSSURL string) (string, error) {
+	data, err := downloadFontAwesomeStyles(fontAwesomeCSSURL)
 	if err != nil {
 		slog.Error("Failed to download Font Awesome styles", "error", err)
 		return "", err
@@ -42,11 +42,11 @@ func formatUnicodeLiteral(unicode string) string {
 	return fmt.Sprintf("\\u%04s", unicode)
 }
 
-func downloadFontAwesomeStyles(fontAwesomeStylesUri string) ([]byte, error) {
+func downloadFontAwesomeStyles(fontAwesomeCSSURL string) ([]byte, error) {
 	client := &http.Client{
 		Timeout: timeout,
 	}
-	resp, err := client.Get(fontAwesomeStylesUri)
+	resp, err := client.Get(fontAwesomeCSSURL)
 	if err != nil {
 		slog.Error("HTTP request failed", "error", err)
 		return nil, err
