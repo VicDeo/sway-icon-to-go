@@ -41,8 +41,8 @@ func NewSwayClient(ctx context.Context) (SwayClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, workspace := range swayWorkspaces {
-		s.workspaceNumByName[workspace.Name] = workspace.Num
+	for _, ws := range swayWorkspaces {
+		s.workspaceNumByName[ws.Name] = ws.Num
 	}
 
 	return s, nil
@@ -106,10 +106,10 @@ func (s *swayClient) traverseTree(node *sc.Node, workspaces workspace.Workspaces
 			return
 		}
 
-		workspace := workspace.NewWorkspace(node.Name, workspaceNum)
-		workspaces[workspace.Number] = workspace
+		ws := workspace.NewWorkspace(node.Name, workspaceNum)
+		workspaces[ws.Number] = ws
 		for _, child := range node.Nodes {
-			s.traverseWorkspace(child, workspace.Number, workspaces)
+			s.traverseWorkspace(child, ws.Number, workspaces)
 		}
 	default:
 		for _, child := range node.Nodes {
