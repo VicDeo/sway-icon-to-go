@@ -3,6 +3,7 @@
 package cache
 
 import (
+	"slices"
 	"sync"
 )
 
@@ -40,7 +41,8 @@ func NewCappedCache(maxCapacity int) *Cache {
 func (c *Cache) Clear() {
 	c.muName.Lock()
 	defer c.muName.Unlock()
-	c.nameCache = make(map[string]string, InitialCacheCapacity)
+	c.nameCache = make(map[string]string, c.maxCapacity)
+	c.order = make([]string, 0, c.maxCapacity)
 }
 
 // GetIcon gets the icon for the given name.
@@ -56,10 +58,13 @@ func (c *Cache) SetIcon(name string, icon string) {
 	c.muName.Lock()
 	defer c.muName.Unlock()
 	if _, exists := c.nameCache[name]; exists {
+		// move to the end of the order
+		c.order = slices.Delete(c.order, slices.Index(c.order, name), 1)
+		c.order = append(c.order, name)
 		c.nameCache[name] = icon
 		return
 	}
-	// evic oldest
+	// evict oldest
 	if len(c.nameCache) >= c.maxCapacity {
 		oldest := c.order[0]
 		delete(c.nameCache, oldest)
