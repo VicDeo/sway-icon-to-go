@@ -27,17 +27,29 @@ A default `fa-icons.yaml` can be produced by executing `sway-icon-to-go parse > 
    ```
 
 4. Hot reload icons file without restarting the application:
-`pkill --signal HUP sway-icon-to-go` 
+`pkill -HUP sway-icon-to-go`
+
+## Commands
+
+**Default behavior:** With no command, runs the workspace daemon.
+
+| Command | Description |
+|---------|-------------|
+| `help` | Show help |
+| `awesome` | List Font Awesome fonts installed on the system (empty output means not installed) |
+| `parse` | Dump icon name → UTF-8 mapping (pipe to fa-icons.yaml) |
 
 ## Command line parameters
-```
-  -c         path to the app-icons.yaml config file
-  -u         display only unique icons. Default is True
-  -l         trim app names to this length. -1 means no trim. Default is 12
-  -d         app delimiter. Could be empty. Default is a pipe character "|".
-  -v         show verbose (debug) output. Default is False
-```
-Sample usage: `./sway-icon-to-go -u=true -d='+'`
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-c` | Path to app-icons.yaml (auto-detect from ~/.config/sway or ~/.config/i3 if empty) | — |
+| `-u` | Display only unique icons | true |
+| `-l` | Trim app names to this length (-1 = no trim) | 12 |
+| `-d` | App separator | pipe character |
+| `-v` | Enable verbose/debug logging | off |
+
+Sample usage: `sway-icon-to-go -u -d='+'`
 
 
 Inspired by https://github.com/cboddy/i3-workspace-names-daemon

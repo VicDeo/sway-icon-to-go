@@ -31,13 +31,14 @@ func main() {
 
 	// Set up the flags
 	format := config.DefaultFormat()
-	flag.BoolVar(&format.Uniq, "u", format.Uniq, "display only unique icons. True by default")
-	flag.IntVar(&format.Length, "l", format.Length, "trim app names to this length. 12 by default")
-	flag.StringVar(&format.Delimiter, "d", format.Delimiter, "app separator. \"|\" by default")
-	flag.BoolVar(&verbose, "v", false, "show verbose output. False by default")
+	flag.BoolVar(&format.Uniq, "u", format.Uniq, "display only unique icons (default true)")
+	flag.IntVar(&format.Length, "l", format.Length, "trim app names to this length, -1 = no trim (default 12)")
+	flag.StringVar(&format.Delimiter, "d", format.Delimiter, "app separator (default \"|\")")
+	flag.BoolVar(&verbose, "v", false, "enable verbose/debug logging")
 
 	// Set up the config path
-	configPath := flag.String("c", "", "path to the app-icons.yaml config file")
+	configPath := flag.String("c", "", "path to app-icons.yaml (auto-detect from ~/.config/sway or ~/.config/i3 if empty)")
+	flag.Usage = help
 	flag.Parse()
 
 	// Adjust the log level according to the verbose flag
@@ -148,17 +149,26 @@ func run(appConfig *config.Config, configPath *string) {
 
 // help prints the help message.
 func help() {
-	fmt.Println(`usage: sway-icon-to-go [-u] [-l LENGTH] [-d DELIMITER] [-c CONFIG_PATH] [help|awesome|parse]
-  awesome    check if Font Awesome is available on your system (via fc-list)
-  parse      parse Font Awesome CSS file to match icon names with their UTF-8 representation  
-  help       print help
-  -c         path to the app-icons.yaml config file
-  -u         display only unique icons. True by default
-  -l         trim app names to this length. 12 by default
-  -d         app delimiter. "|" by default
-  -v         show verbose output. False by default
+	fmt.Fprintf(os.Stderr, `Renames sway workspaces by window names with Font Awesome icons.
+
+Usage:
+  sway-icon-to-go [options] [help|awesome|parse]
+
+With no command, runs the workspace daemon.
+
+Commands:
+  awesome    list Font Awesome fonts installed on the system (empty output means not installed)
+  parse      dump icon name → UTF-8 mapping (pipe to fa-icons.yaml)
+  help       show this help
+
+Flags:
+  -c         path to app-icons.yaml (auto-detect from ~/.config/sway or ~/.config/i3 if empty)
+  -u         display only unique icons (default true)
+  -l         trim app names to this length, -1 = no trim (default 12)
+  -d         app separator (default "|")
+  -v         enable verbose/debug logging
 
 Configuration can be reloaded at runtime by sending SIGHUP signal:
-  kill -HUP <pid>
-	`)
+  pkill -HUP sway-icon-to-go
+`)
 }
