@@ -19,7 +19,7 @@ func NewNameFormatter(format *config.Format) *NameFormatter {
 // Format the workspace name according to the config.
 func (nf *NameFormatter) Format(workspaceNumber int64, appIcons []string) string {
 	if appIcons == nil {
-		return ""
+		return fmt.Sprintf("%d: ", workspaceNumber)
 	}
 
 	if nf.format.Uniq {
@@ -36,6 +36,7 @@ func (nf *NameFormatter) Format(workspaceNumber int64, appIcons []string) string
 	} else {
 		trimmedAppIcons = appIcons
 	}
+
 	return fmt.Sprintf(
 		"%d: %s",
 		workspaceNumber,

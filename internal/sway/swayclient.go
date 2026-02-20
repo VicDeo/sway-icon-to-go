@@ -17,7 +17,7 @@ const (
 // SwayClient is an interface that provides a way to interact with the Sway window manager.
 type SwayClient interface {
 	CollectWorkspaces() (workspace.Workspaces, error)
-	RenameWorkspaces(workspaces workspace.Workspaces, nameFormatter NameFormatter) error
+	RenameWorkspaces(workspaces workspace.Workspaces, nameFormatter workspace.NameFormatter) error
 }
 
 // WorkspaceNumByName is a map of workspace name to workspace number.
@@ -76,7 +76,7 @@ func (s *swayClient) CollectWorkspaces() (workspace.Workspaces, error) {
 }
 
 // RenameWorkspaces renames the workspaces.
-func (s *swayClient) RenameWorkspaces(workspaces workspace.Workspaces, nameFormatter NameFormatter) error {
+func (s *swayClient) RenameWorkspaces(workspaces workspace.Workspaces, nameFormatter workspace.NameFormatter) error {
 	renameCommand := workspaces.ToRenameCommand(nameFormatter)
 	if renameCommand == "" {
 		// No changes to the workspaces, so we can return early

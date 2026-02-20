@@ -17,11 +17,40 @@ func (nf *nameFormatter) Format(workspaceNumber int64, appIcons []string) string
 
 func TestWorkspace_ToRenameCommand(t *testing.T) {
 	nameFormatter := &nameFormatter{}
-	workspace := NewWorkspace("1: app1|app2|app3", 1)
-	workspace.AddAppIcon("New app1")
-	workspace.AddAppIcon("New app2")
-	workspace.AddAppIcon("New app3")
-	command := workspace.ToRenameCommand(nameFormatter)
+	ws := NewWorkspace("1: app1|app2|app3", 1)
+	ws.AddAppIcon("New app1")
+	ws.AddAppIcon("New app2")
+	command := ws.ToRenameCommand(nameFormatter)
+	assert.Equal(t, "rename workspace \"1: app1|app2|app3\" to \"1: New app1|New app2\"", command)
+}
+
+func TestWorkspace_ToRenameCommand_NoChange(t *testing.T) {
+	nameFormatter := &nameFormatter{}
+	ws := NewWorkspace("1: app1|app2|app3", 1)
+	ws.AddAppIcon("app1")
+	ws.AddAppIcon("app2")
+	ws.AddAppIcon("app3")
+	command := ws.ToRenameCommand(nameFormatter)
+	assert.Empty(t, command)
+}
+
+func TestWorkspace_ToRenameCommand_Quotes(t *testing.T) {
+	nameFormatter := &nameFormatter{}
+	ws := NewWorkspace("1: app1|app2|app3", 1)
+	ws.AddAppIcon("New app1")
+	ws.AddAppIcon("New app2")
+	ws.AddAppIcon("New \"app3\"")
+	command := ws.ToRenameCommand(nameFormatter)
+	assert.Equal(t, "rename workspace \"1: app1|app2|app3\" to \"1: New app1|New app2|New \\\"app3\\\"\"", command)
+}
+
+func TestWorkspace_ToRenameCommand_Backslash(t *testing.T) {
+	nameFormatter := &nameFormatter{}
+	ws := NewWorkspace("1: app1|app2|app3", 1)
+	ws.AddAppIcon("New app1")
+	ws.AddAppIcon("New app2")
+	ws.AddAppIcon("New app3\\")
+	command := ws.ToRenameCommand(nameFormatter)
 	assert.Equal(t, "rename workspace \"1: app1|app2|app3\" to \"1: New app1|New app2|New app3\"", command)
 }
 

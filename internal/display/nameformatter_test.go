@@ -43,6 +43,20 @@ func TestNameFormatter_Format(t *testing.T) {
 			appIcons:        []string{"1234567890123", "app2", "app3"},
 			expected:        "10000: 1234567890 app2 app3",
 		},
+		{
+			name:            "no app icons",
+			format:          &config.Format{Length: 10, Delimiter: " ", Uniq: true},
+			workspaceNumber: 777,
+			appIcons:        []string{},
+			expected:        "777: ",
+		},
+		{
+			name:            "nil app icons",
+			format:          &config.Format{Length: 10, Delimiter: " ", Uniq: true},
+			workspaceNumber: 777,
+			appIcons:        nil,
+			expected:        "777: ",
+		},
 	}
 	for _, testCase := range testCases {
 		formatter := NewNameFormatter(testCase.format)

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"sway-icon-to-go/internal/config"
 	"sway-icon-to-go/internal/display"
+	"sway-icon-to-go/internal/workspace"
 
 	sc "github.com/joshuarubin/go-sway"
 )
@@ -22,13 +23,13 @@ var (
 // handler is a struct that handles the sway events
 type handler struct {
 	sc.EventHandler
-	nameFormatter NameFormatter
+	nameFormatter workspace.NameFormatter
 	iconProvider  *display.IconProvider
 	config        *config.Config
 }
 
 // NewHandler creates a new handler instance.
-func NewHandler(nameFormatter NameFormatter, iconProvider *display.IconProvider, config *config.Config) *handler {
+func NewHandler(nameFormatter workspace.NameFormatter, iconProvider *display.IconProvider, config *config.Config) *handler {
 	h := &handler{
 		EventHandler:  sc.NoOpEventHandler(),
 		nameFormatter: nameFormatter,

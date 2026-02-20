@@ -4,6 +4,7 @@ package workspace
 import (
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 )
 
@@ -61,14 +62,16 @@ func (w *Workspace) ToRenameCommand(nf NameFormatter) string {
 
 	return fmt.Sprintf(
 		"rename workspace \"%s\" to \"%s\"",
-		escapeName(w.Name),
-		escapeName(newName),
+		sanitizeName(w.Name),
+		sanitizeName(newName),
 	)
 }
 
-// escapeName escapes the name for the sway command.
-func escapeName(name string) string {
-	return strings.ReplaceAll(name, "\"", "\\\"")
+// sanitizeName escapes the name for the sway command.
+func sanitizeName(name string) string {
+	cleanedName := strings.ReplaceAll(name, "\\", "")
+	cleanedName = strings.ReplaceAll(cleanedName, "\"", "\\\"")
+	return cleanedName
 }
 
 // Workspaces is a map of workspace number to workspace.
@@ -78,8 +81,16 @@ type Workspaces map[int64]*Workspace
 func (ww Workspaces) ToRenameCommand(nf NameFormatter) string {
 	var commands []string
 
-	for _, workspace := range ww {
-		name := workspace.ToRenameCommand(nf)
+	// Collect and sort workspace numbers for deterministic output
+	numbers := make([]int64, 0, len(ww))
+	for num := range ww {
+		numbers = append(numbers, num)
+	}
+	slices.Sort(numbers)
+
+	for _, num := range numbers {
+		ws := ww[num]
+		name := ws.ToRenameCommand(nf)
 		if name != "" {
 			commands = append(commands, name)
 		}
