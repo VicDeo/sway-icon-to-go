@@ -23,6 +23,10 @@ terminal:
 shield-alt:
   - keepassxc
   - 1password
+book-reader:
+  - zathura
+database:
+  - dbeaver
 image:
   - gwenview
 solar-panel:
