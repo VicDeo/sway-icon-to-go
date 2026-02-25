@@ -8,12 +8,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-type ConfigFile struct {
+type ConfigLoader struct {
 	viper *viper.Viper
 	Path  string
 }
 
-func NewConfigFile(path string) (*ConfigFile, error) {
+func NewConfigLoader(path string) (*ConfigLoader, error) {
 	fileInfo, err := os.Stat(path)
 	if err != nil {
 		slog.Error("Error while statting config file", "error", err)
@@ -23,13 +23,13 @@ func NewConfigFile(path string) (*ConfigFile, error) {
 		slog.Error("Config file is a directory", "path", path)
 		return nil, fmt.Errorf("config file %s is not a file", path)
 	}
-	return &ConfigFile{
+	return &ConfigLoader{
 		viper: viper.New(),
 		Path:  path,
 	}, nil
 }
 
-func (c *ConfigFile) Load(target any) error {
+func (c *ConfigLoader) Load(target any) error {
 	c.viper.SetConfigFile(c.Path)
 	c.viper.SetConfigType("yaml")
 	if err := c.viper.ReadInConfig(); err != nil {

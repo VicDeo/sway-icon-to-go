@@ -37,7 +37,7 @@ func main() {
 	flag.BoolVar(&verbose, "v", false, "enable verbose/debug logging")
 
 	// Set up the config path
-	configPath := flag.String("c", "", "path to app-icons.yaml (auto-detect from ~/.config/sway or ~/.config/i3 if empty)")
+	appIconsConfigPath := flag.String("c", "", "path to app-icons.yaml (auto-detect from ~/.config/sway or ~/.config/i3 if empty)")
 	flag.Usage = help
 	flag.Parse()
 
@@ -73,14 +73,37 @@ func main() {
 			return
 		}
 	}
+
+	cfgDirResolver := config.NewConfigDirResolver()
+	// if no app icons config path provided, try to resolve it
+	var appIconsPath string
+	if *appIconsConfigPath == "" {
+		resolver := config.NewConfigFileResolver(cfgDirResolver, config.ConfigDirectories, config.AppIconsFileName)
+		var err error
+		if appIconsPath, err = resolver.Resolve(); err != nil {
+			slog.Warn("Error while resolving config file", "error", err)
+		} else {
+			appIconsConfigPath = &appIconsPath
+		}
+	}
+
+	// resolve the fa icons config path
+	faIconsConfigPath := ""
+	resolver := config.NewConfigFileResolver(cfgDirResolver, config.ConfigDirectories, config.FaFileName)
+	configPath, err := resolver.Resolve()
+	if err != nil {
+		slog.Warn("Error while resolving config file", "error", err)
+	} else {
+		faIconsConfigPath = configPath
+	}
 	// Get the configuration
-	appConfig, configErr := config.NewConfig(*configPath, format)
+	appConfig, configErr := config.NewConfig(*appIconsConfigPath, faIconsConfigPath, format)
 	if configErr != nil {
 		slog.Error("Error while getting config", "error", configErr)
 		os.Exit(1)
 	}
 	// Run the application
-	run(appConfig, configPath)
+	run(appConfig, *appIconsConfigPath, faIconsConfigPath)
 }
 
 func setupLogger(verbose bool) {
@@ -95,7 +118,7 @@ func setupLogger(verbose bool) {
 }
 
 // run runs the application.
-func run(appConfig *config.Config, configPath *string) {
+func run(appConfig *config.Config, appIconsConfigPath string, faIconsConfigPath string) {
 	nameFormatter := display.NewNameFormatter(appConfig.Format)
 
 	// Set up the pid to name resolver
@@ -133,7 +156,7 @@ func run(appConfig *config.Config, configPath *string) {
 		case sig := <-sigChan:
 			slog.Info("Received signal", "signal", sig)
 			if sig == syscall.SIGHUP {
-				newConfig, err := config.NewConfig(*configPath, appConfig.Format)
+				newConfig, err := config.NewConfig(appIconsConfigPath, faIconsConfigPath, appConfig.Format)
 				if err != nil {
 					slog.Error("Failed to reload configuration", "error", err)
 					continue
