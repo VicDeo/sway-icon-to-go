@@ -74,11 +74,12 @@ func main() {
 		}
 	}
 
-	cfgDirResolver := config.NewConfigDirResolver()
+	validator := config.NewPathValidator()
+	cfgDirResolver := config.NewConfigDirResolver(validator)
 	// if no app icons config path provided, try to resolve it
 	var appIconsPath string
 	if *appIconsConfigPath == "" {
-		resolver := config.NewConfigFileResolver(cfgDirResolver, config.ConfigDirectories, config.AppIconsFileName)
+		resolver := config.NewConfigFileResolver(validator, cfgDirResolver, config.ConfigDirectories, config.AppIconsFileName)
 		var err error
 		if appIconsPath, err = resolver.Resolve(); err != nil {
 			slog.Warn("Error while resolving config file", "error", err)
@@ -89,7 +90,7 @@ func main() {
 
 	// resolve the fa icons config path
 	faIconsConfigPath := ""
-	resolver := config.NewConfigFileResolver(cfgDirResolver, config.ConfigDirectories, config.FaFileName)
+	resolver := config.NewConfigFileResolver(validator, cfgDirResolver, config.ConfigDirectories, config.FaFileName)
 	configPath, err := resolver.Resolve()
 	if err != nil {
 		slog.Warn("Error while resolving config file", "error", err)
