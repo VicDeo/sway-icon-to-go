@@ -69,9 +69,17 @@ func (w *Workspace) ToRenameCommand(nf NameFormatter) string {
 
 // sanitizeName escapes the name for the sway command.
 func sanitizeName(name string) string {
-	cleanedName := strings.ReplaceAll(name, "\\", "")
-	cleanedName = strings.ReplaceAll(cleanedName, "\"", "\\\"")
-	return cleanedName
+	cleaned := strings.NewReplacer(
+		`\`, "",
+		`"`, "",
+		`;`, "",
+		"\n", "",
+		"\r", "",
+	).Replace(name)
+	if cleaned == "" {
+		return " "
+	}
+	return cleaned
 }
 
 // Workspaces is a map of workspace number to workspace.

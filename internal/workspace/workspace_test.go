@@ -41,7 +41,7 @@ func TestWorkspace_ToRenameCommand_Quotes(t *testing.T) {
 	ws.AddAppIcon("New app2")
 	ws.AddAppIcon("New \"app3\"")
 	command := ws.ToRenameCommand(nameFormatter)
-	assert.Equal(t, "rename workspace \"1: app1|app2|app3\" to \"1: New app1|New app2|New \\\"app3\\\"\"", command)
+	assert.Equal(t, `rename workspace "1: app1|app2|app3" to "1: New app1|New app2|New app3"`, command)
 }
 
 func TestWorkspace_ToRenameCommand_Backslash(t *testing.T) {
@@ -51,7 +51,7 @@ func TestWorkspace_ToRenameCommand_Backslash(t *testing.T) {
 	ws.AddAppIcon("New app2")
 	ws.AddAppIcon("New app3\\")
 	command := ws.ToRenameCommand(nameFormatter)
-	assert.Equal(t, "rename workspace \"1: app1|app2|app3\" to \"1: New app1|New app2|New app3\"", command)
+	assert.Equal(t, `rename workspace "1: app1|app2|app3" to "1: New app1|New app2|New app3"`, command)
 }
 
 func TestWorkspaces_ToRenameCommand(t *testing.T) {

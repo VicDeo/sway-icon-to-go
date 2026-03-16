@@ -30,8 +30,9 @@ func (nf *NameFormatter) Format(workspaceNumber int64, appIcons []string) string
 	if nf.format.Length > 0 {
 		// Trim app icons to the length specified in the config.
 		for _, appIcon := range appIcons {
-			capLength := min(len(appIcon), nf.format.Length)
-			trimmedAppIcons = append(trimmedAppIcons, appIcon[:capLength])
+			runes := []rune(appIcon)
+			capLength := min(len(runes), nf.format.Length)
+			trimmedAppIcons = append(trimmedAppIcons, string(runes[:capLength]))
 		}
 	} else {
 		trimmedAppIcons = appIcons
